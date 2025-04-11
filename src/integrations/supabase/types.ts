@@ -9,13 +9,166 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      anuncios: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          detalhes: Json | null
+          id: string
+          imagens: string[]
+          localizacao: string | null
+          orcamento: number | null
+          preco: number
+          slug: string
+          status: string | null
+          titulo: string
+          updated_at: string
+          user_id: string
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          detalhes?: Json | null
+          id?: string
+          imagens: string[]
+          localizacao?: string | null
+          orcamento?: number | null
+          preco: number
+          slug: string
+          status?: string | null
+          titulo: string
+          updated_at?: string
+          user_id: string
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          detalhes?: Json | null
+          id?: string
+          imagens?: string[]
+          localizacao?: string | null
+          orcamento?: number | null
+          preco?: number
+          slug?: string
+          status?: string | null
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      visualizacoes: {
+        Row: {
+          anuncio_id: string
+          created_at: string
+          id: string
+          viewer_agent: string | null
+          viewer_ip: string | null
+        }
+        Insert: {
+          anuncio_id: string
+          created_at?: string
+          id?: string
+          viewer_agent?: string | null
+          viewer_ip?: string | null
+        }
+        Update: {
+          anuncio_id?: string
+          created_at?: string
+          id?: string
+          viewer_agent?: string | null
+          viewer_ip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visualizacoes_anuncio_id_fkey"
+            columns: ["anuncio_id"]
+            isOneToOne: false
+            referencedRelation: "anuncios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_cliques: {
+        Row: {
+          anuncio_id: string
+          clicker_agent: string | null
+          clicker_ip: string | null
+          created_at: string
+          id: string
+        }
+        Insert: {
+          anuncio_id: string
+          clicker_agent?: string | null
+          clicker_ip?: string | null
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          anuncio_id?: string
+          clicker_agent?: string | null
+          clicker_ip?: string | null
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_cliques_anuncio_id_fkey"
+            columns: ["anuncio_id"]
+            isOneToOne: false
+            referencedRelation: "anuncios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_unique_slug: {
+        Args: { title: string }
+        Returns: string
+      }
+      register_view: {
+        Args: { anuncio_slug: string; viewer_ip: string; viewer_agent: string }
+        Returns: undefined
+      }
+      register_whatsapp_click: {
+        Args: {
+          anuncio_slug: string
+          clicker_ip: string
+          clicker_agent: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
