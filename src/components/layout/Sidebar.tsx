@@ -42,6 +42,7 @@ export function Sidebar() {
     return null;
   }
 
+  // On mobile, don't render the sidebar at all
   if (isMobile) {
     return null;
   }
@@ -72,10 +73,10 @@ export function Sidebar() {
 
       <div className="flex flex-col gap-1 p-2 mt-4">
         <NavItem
-          to="/"
+          to="/dashboard"
           icon={<Home size={20} />}
           label="Dashboard"
-          isActive={location.pathname === "/"}
+          isActive={location.pathname === "/dashboard"}
           isCollapsed={isCollapsed}
         />
         <NavItem

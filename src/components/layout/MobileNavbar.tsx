@@ -20,10 +20,10 @@ export function MobileNavbar() {
     <div className="fixed bottom-0 left-0 w-full border-t border-border bg-white z-50">
       <div className="flex items-center justify-between px-4">
         <NavItem 
-          to="/" 
+          to="/dashboard" 
           icon={<Home size={20} />} 
           label="Início" 
-          isActive={location.pathname === "/"} 
+          isActive={location.pathname === "/dashboard"} 
         />
         <NavItem 
           to="/anuncios" 

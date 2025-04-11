@@ -8,9 +8,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { 
   DollarSign, Users, MousePointerClick, ClipboardList, 
-  AreaChart, BarChart, Upload, Calendar, Search, ArrowUpDown, Download 
+  AreaChart, BarChart, Calendar, Search, ArrowUpDown, Download 
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { MetricsUploadDialog } from "@/components/metrics/MetricsUploadDialog";
+import { PlaceholderMetrics } from "@/components/metrics/PlaceholderMetrics";
 
 interface CampaignData {
   campaign_name: string;
@@ -31,12 +33,10 @@ export default function Metrics() {
   const [csvData, setCsvData] = useState<CampaignData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasFile, setHasFile] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleFileUpload = (file: File) => {
     if (!file) return;
 
     setIsLoading(true);
@@ -151,47 +151,33 @@ export default function Metrics() {
             <Calendar className="h-4 w-4" />
             11 de abril de 2025
           </Button>
-          <Button>Atualizar</Button>
+          {hasFile ? (
+            <MetricsUploadDialog onUpload={handleFileUpload} isLoading={isLoading} />
+          ) : (
+            <Button onClick={() => {}}>Atualizar</Button>
+          )}
         </div>
       </Header>
 
       {!hasFile ? (
-        <Card className="p-8 bg-white border border-gray-200 text-center">
-          <div className="space-y-4">
-            <h3 className="text-xl font-medium">Importe seus dados de campanhas</h3>
-            <p className="text-gray-500">
-              Para visualizar suas métricas, faça o upload de um arquivo CSV com os dados das suas campanhas publicitárias.
-            </p>
-            
-            <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 mt-6 mx-auto max-w-md">
-              <div className="flex flex-col items-center justify-center gap-4">
-                <Upload className="h-10 w-10 text-gray-300" />
-                <div className="text-center">
-                  <p className="text-sm text-gray-500">
-                    Arraste e solte seu arquivo CSV aqui ou
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Clique para selecionar
-                  </p>
-                </div>
-                <Input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".csv"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                />
-                <Button 
-                  variant="outline" 
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Processando..." : "Selecionar arquivo"}
-                </Button>
-              </div>
+        <>
+          <div className="mb-6">
+            <h2 className="text-lg font-medium mb-3">Prévia de métricas</h2>
+            <PlaceholderMetrics />
+            <div className="flex justify-center mt-6">
+              <MetricsUploadDialog onUpload={handleFileUpload} isLoading={isLoading} />
             </div>
           </div>
-        </Card>
+          
+          <Card className="p-8 bg-white border border-gray-200 text-center">
+            <div className="space-y-4">
+              <h3 className="text-xl font-medium">Importe seus dados de campanhas para métricas detalhadas</h3>
+              <p className="text-gray-500">
+                Para visualizar suas métricas completas, faça o upload de um arquivo CSV com os dados das suas campanhas publicitárias.
+              </p>
+            </div>
+          </Card>
+        </>
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">

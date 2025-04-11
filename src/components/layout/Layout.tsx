@@ -21,9 +21,9 @@ export function Layout() {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col max-w-full">
         <Header />
-        <main className="flex-1 p-4 sm:p-6 pb-20 md:pb-6">
+        <main className="flex-1 p-4 sm:p-6 pb-24 md:pb-6 overflow-x-hidden">
           <Outlet />
         </main>
         <MobileNavbar />
