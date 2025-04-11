@@ -72,7 +72,7 @@ export default function Metrics() {
           
           headers.forEach((header, index) => {
             const key = headerMap[header.trim()] || header.trim();
-            let value = values[index]?.trim() || '';
+            let value: any = values[index]?.trim() || '';
             
             if (['amount_spent', 'reach', 'impressions', 'cpm', 'conversations', 'link_clicks', 'landing_page_views', 'leads'].includes(key)) {
               value = parseFloat(value) || 0;
