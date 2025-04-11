@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -36,14 +35,12 @@ export default function Metrics() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
 
-  // Function to handle CSV file upload
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     setIsLoading(true);
 
-    // Read the file
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -51,7 +48,6 @@ export default function Metrics() {
         const rows = text.split('\n');
         const headers = rows[0].split(',');
         
-        // Map CSV headers to our data model
         const headerMap: Record<string, string> = {
           'Campaign Name': 'campaign_name',
           'Ad Set Name': 'ad_set_name',
@@ -67,7 +63,6 @@ export default function Metrics() {
           'Day': 'day'
         };
 
-        // Parse each row of data
         const parsedData: CampaignData[] = [];
         for (let i = 1; i < rows.length; i++) {
           if (!rows[i].trim()) continue;
@@ -79,7 +74,6 @@ export default function Metrics() {
             const key = headerMap[header.trim()] || header.trim();
             let value = values[index]?.trim() || '';
             
-            // Convert numeric values
             if (['amount_spent', 'reach', 'impressions', 'cpm', 'conversations', 'link_clicks', 'landing_page_views', 'leads'].includes(key)) {
               value = parseFloat(value) || 0;
             }
@@ -120,7 +114,6 @@ export default function Metrics() {
     reader.readAsText(file);
   };
 
-  // Calculate metrics summaries
   const totalInvestment = csvData.reduce((sum, item) => sum + item.amount_spent, 0);
   const totalReach = csvData.reduce((sum, item) => sum + item.reach, 0);
   const totalClicks = csvData.reduce((sum, item) => sum + item.link_clicks, 0);
@@ -128,7 +121,6 @@ export default function Metrics() {
   const averageCTR = totalReach > 0 ? (totalClicks / totalReach) * 100 : 0;
   const averageCPC = totalClicks > 0 ? totalInvestment / totalClicks : 0;
 
-  // Filter data based on search and date
   const filteredData = csvData.filter(item => {
     const matchesSearch = searchTerm === "" || 
       item.campaign_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -140,7 +132,6 @@ export default function Metrics() {
     return matchesSearch && matchesDate;
   });
 
-  // Group data by campaign for the table
   const campaignGroups = filteredData.reduce((groups: Record<string, CampaignData[]>, item) => {
     const campaign = item.campaign_name;
     if (!groups[campaign]) {
@@ -150,7 +141,6 @@ export default function Metrics() {
     return groups;
   }, {});
 
-  // Get unique dates for the filter
   const uniqueDates = Array.from(new Set(csvData.map(item => item.day))).sort();
 
   return (
@@ -204,7 +194,6 @@ export default function Metrics() {
         </Card>
       ) : (
         <>
-          {/* Summary Metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
             <MetricCard 
               title="Investimento Total" 
@@ -243,7 +232,6 @@ export default function Metrics() {
             />
           </div>
 
-          {/* Detailed Metrics */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <Card className="col-span-1 p-6 bg-white">
               <h3 className="text-lg font-medium mb-4">Métricas de Custo</h3>
@@ -308,7 +296,6 @@ export default function Metrics() {
             </Card>
           </div>
           
-          {/* Detailed Results Table */}
           <Card className="bg-white p-6">
             <div className="flex flex-col space-y-4">
               <div className="flex justify-between items-center flex-wrap gap-4">
@@ -422,6 +409,11 @@ interface MetricGaugeProps {
 }
 
 function MetricGauge({ title, value, unit, min, max }: MetricGaugeProps) {
+  const valueNum = parseFloat(value);
+  const maxNum = parseFloat(max);
+  const percentValue = (valueNum / maxNum) * 100;
+  const clampedPercent = Math.min(100, Math.max(0, percentValue));
+  
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
@@ -432,7 +424,7 @@ function MetricGauge({ title, value, unit, min, max }: MetricGaugeProps) {
         <div
           className="absolute inset-0 bg-gray-300 rounded-full"
           style={{
-            clipPath: `polygon(0 0, ${Math.min(100, Math.max(0, (parseFloat(value) / parseFloat(max)) * 100))}% 0, ${Math.min(100, Math.max(0, (parseFloat(value) / parseFloat(max)) * 100))}% 100%, 0 100%)`,
+            clipPath: `polygon(0 0, ${clampedPercent}% 0, ${clampedPercent}% 100%, 0 100%)`,
           }}
         ></div>
       </div>
@@ -476,7 +468,6 @@ interface CampaignGroupProps {
 function CampaignGroup({ campaign, items }: CampaignGroupProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   
-  // Calculate campaign totals
   const totalSpent = items.reduce((sum, item) => sum + item.amount_spent, 0);
   const totalReach = items.reduce((sum, item) => sum + item.reach, 0);
   const totalImpressions = items.reduce((sum, item) => sum + item.impressions, 0);
