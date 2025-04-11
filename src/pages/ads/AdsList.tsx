@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlusCircle, Trash2, Pencil } from "lucide-react";
-import { supabase } from "@/lib/supabase"; // certifique-se de que esse caminho está certo
+import { supabase } from "@/integrations/supabase/client"; // certifique-se de que esse caminho está certo
 
 export default function AdsList() {
   const [ads, setAds] = useState<any[]>([]);
