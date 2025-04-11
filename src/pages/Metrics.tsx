@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -454,13 +455,14 @@ interface CampaignGroupProps {
 function CampaignGroup({ campaign, items }: CampaignGroupProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   
-  const totalSpent = items.reduce((sum, item) => sum + item.amount_spent, 0);
-  const totalReach = items.reduce((sum, item) => sum + item.reach, 0);
-  const totalImpressions = items.reduce((sum, item) => sum + item.impressions, 0);
-  const totalConversations = items.reduce((sum, item) => sum + item.conversations, 0);
-  const totalClicks = items.reduce((sum, item) => sum + item.link_clicks, 0);
-  const totalViews = items.reduce((sum, item) => sum + item.landing_page_views, 0);
-  const totalLeads = items.reduce((sum, item) => sum + item.leads, 0);
+  // Ensure these values are not undefined by using default values of 0
+  const totalSpent = items.reduce((sum, item) => sum + (item.amount_spent || 0), 0);
+  const totalReach = items.reduce((sum, item) => sum + (item.reach || 0), 0);
+  const totalImpressions = items.reduce((sum, item) => sum + (item.impressions || 0), 0);
+  const totalConversations = items.reduce((sum, item) => sum + (item.conversations || 0), 0);
+  const totalClicks = items.reduce((sum, item) => sum + (item.link_clicks || 0), 0);
+  const totalViews = items.reduce((sum, item) => sum + (item.landing_page_views || 0), 0);
+  const totalLeads = items.reduce((sum, item) => sum + (item.leads || 0), 0);
 
   return (
     <>
@@ -497,13 +499,13 @@ function CampaignGroup({ campaign, items }: CampaignGroupProps) {
           <td className="p-3 pl-10">{campaign}</td>
           <td className="p-3">{item.ad_set_name}</td>
           <td className="p-3">{item.ad_name}</td>
-          <td className="p-3 text-right">R$ {item.amount_spent.toFixed(2)}</td>
-          <td className="p-3 text-right">{item.reach.toLocaleString()}</td>
-          <td className="p-3 text-right">{item.impressions.toLocaleString()}</td>
-          <td className="p-3 text-right">{item.conversations.toLocaleString()}</td>
-          <td className="p-3 text-right">{item.link_clicks.toLocaleString()}</td>
-          <td className="p-3 text-right">{item.landing_page_views.toLocaleString()}</td>
-          <td className="p-3 text-right">{item.leads.toLocaleString()}</td>
+          <td className="p-3 text-right">R$ {(item.amount_spent || 0).toFixed(2)}</td>
+          <td className="p-3 text-right">{(item.reach || 0).toLocaleString()}</td>
+          <td className="p-3 text-right">{(item.impressions || 0).toLocaleString()}</td>
+          <td className="p-3 text-right">{(item.conversations || 0).toLocaleString()}</td>
+          <td className="p-3 text-right">{(item.link_clicks || 0).toLocaleString()}</td>
+          <td className="p-3 text-right">{(item.landing_page_views || 0).toLocaleString()}</td>
+          <td className="p-3 text-right">{(item.leads || 0).toLocaleString()}</td>
           <td className="p-3 text-right">{item.day}</td>
         </tr>
       ))}
