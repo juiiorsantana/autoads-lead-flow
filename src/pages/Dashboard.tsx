@@ -1,4 +1,5 @@
-
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 import { Header } from "@/components/layout/Header";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,35 +7,98 @@ import { Button } from "@/components/ui/button";
 import { Car, DollarSign, ChevronsRight, PlusCircle, Waypoints } from "lucide-react";
 import { Link } from "react-router-dom";
 
+interface Anuncio {
+  id: string;
+  titulo: string;
+  descricao: string;
+  preco: number;
+  status: string;
+}
+
 export default function Dashboard() {
+  const [anuncios, setAnuncios] = useState<Anuncio[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const buscarUsuarioEAnuncios = async () => {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError || !session?.user) {
+        console.error("Usuário não autenticado.");
+        setLoading(false);
+        return;
+      }
+
+      const userId = session.user.id;
+
+      const { data, error } = await supabase
+        .from("anuncios")
+        .select("*")
+        .eq("user_id", userId);
+
+      if (error) {
+        console.error("Erro ao buscar anúncios:", error);
+      } else {
+        setAnuncios(data || []);
+      }
+
+      setLoading(false);
+    };
+
+    buscarUsuarioEAnuncios();
+  }, []);
+
+  const renderAnunciosPorStatus = (status: string | null = null) => {
+    const filtrados = status ? anuncios.filter(a => a.status === status) : anuncios;
+
+    if (loading) {
+      return <EmptyStateCard message="Carregando anúncios..." />;
+    }
+
+    if (filtrados.length === 0) {
+      return <EmptyStateCard message="Nenhum anúncio encontrado." />;
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filtrados.map(anuncio => (
+          <Card key={anuncio.id} className="p-4">
+            <h3 className="text-lg font-semibold">{anuncio.titulo}</h3>
+            <p className="text-gray-500">{anuncio.descricao}</p>
+            <p className="text-primary font-bold mt-2">R$ {anuncio.preco}</p>
+            <p className="text-sm text-gray-400 mt-1">Status: {anuncio.status}</p>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <Header title="Bem-vindo, Esvanel!" />
-      
+
       <div className="text-gray-600">
         Aqui está o resumo dos seus anúncios de veículos
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <MetricCard 
-          title="Anúncios Ativos" 
-          value="0" 
-          subtitle="Total de veículos anunciados" 
-          icon={<Car className="h-6 w-6 text-primary" />} 
+        <MetricCard
+          title="Anúncios Ativos"
+          value={anuncios.length.toString()}
+          subtitle="Total de veículos anunciados"
+          icon={<Car className="h-6 w-6 text-primary" />}
         />
-        
-        <MetricCard 
-          title="Gasto Total/Dia" 
-          value="R$ 0,00" 
-          subtitle="Investimento diário em anúncios" 
-          icon={<DollarSign className="h-6 w-6 text-primary" />} 
+        <MetricCard
+          title="Gasto Total/Dia"
+          value="R$ 0,00"
+          subtitle="Investimento diário em anúncios"
+          icon={<DollarSign className="h-6 w-6 text-primary" />}
         />
-        
-        <MetricCard 
-          title="Total de Cliques" 
-          value="0" 
-          subtitle="Interações via WhatsApp" 
-          icon={<Waypoints className="h-6 w-6 text-primary" />} 
+        <MetricCard
+          title="Total de Cliques"
+          value="0"
+          subtitle="Interações via WhatsApp"
+          icon={<Waypoints className="h-6 w-6 text-primary" />}
         />
       </div>
 
@@ -56,47 +120,28 @@ export default function Dashboard() {
           <TabsTrigger value="em-analise">Em Análise</TabsTrigger>
           <TabsTrigger value="deletados">Deletados</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="todos" className="mt-4">
-          <Card className="p-8 bg-white border border-gray-200 text-center">
-            <div className="space-y-4">
-              <h3 className="text-xl font-medium">Nenhum anúncio encontrado</h3>
-              <p className="text-gray-500">Você ainda não tem nenhum anúncio cadastrado.</p>
-              <p className="text-center text-gray-600 mt-4">
-                Comece a anunciar seus veículos e atraia mais clientes!
-              </p>
-              
-              <div className="flex justify-center mt-4">
-                <Link to="/anuncios/novo">
-                  <Button className="flex items-center gap-2">
-                    <PlusCircle className="h-4 w-4" />
-                    Criar meu primeiro anúncio
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </Card>
+          {renderAnunciosPorStatus()}
         </TabsContent>
-        
         <TabsContent value="aprovados" className="mt-4">
-          <EmptyStateCard message="Nenhum anúncio aprovado encontrado." />
+          {renderAnunciosPorStatus("aprovado")}
         </TabsContent>
-        
         <TabsContent value="pausados" className="mt-4">
-          <EmptyStateCard message="Nenhum anúncio pausado encontrado." />
+          {renderAnunciosPorStatus("pausado")}
         </TabsContent>
-        
         <TabsContent value="em-analise" className="mt-4">
-          <EmptyStateCard message="Nenhum anúncio em análise encontrado." />
+          {renderAnunciosPorStatus("em-analise")}
         </TabsContent>
-        
         <TabsContent value="deletados" className="mt-4">
-          <EmptyStateCard message="Nenhum anúncio deletado encontrado." />
+          {renderAnunciosPorStatus("deletado")}
         </TabsContent>
       </Tabs>
     </div>
   );
 }
+
+// ----------------- COMPONENTES AUXILIARES -----------------
 
 interface MetricCardProps {
   title: string;
@@ -129,3 +174,4 @@ function EmptyStateCard({ message }: { message: string }) {
     </Card>
   );
 }
+
