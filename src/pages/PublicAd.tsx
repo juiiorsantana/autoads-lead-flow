@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { WhatsApp, MapPin, Eye, MessageCircle, ArrowLeft } from "lucide-react";
+import { MessageCircle, MapPin, Eye, ArrowLeft } from "lucide-react";
 
 export default function PublicAd() {
   const { slug } = useParams<{ slug: string }>();
@@ -222,7 +221,7 @@ export default function PublicAd() {
               className="w-full py-6 text-lg gap-2" 
               onClick={handleWhatsAppClick}
             >
-              <WhatsApp className="h-5 w-5" />
+              <MessageCircle className="h-5 w-5" />
               Conversar pelo WhatsApp
             </Button>
 
