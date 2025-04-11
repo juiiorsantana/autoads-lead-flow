@@ -109,6 +109,7 @@ function AdsListGrid({ ads, onDelete }: { ads: any[]; onDelete: (id: number) => 
             <p className="text-xs text-gray-500">Status: <strong>{ad.status}</strong></p>
 
             <div className="flex gap-2 mt-3">
+              {/* Link para a página de edição */}
               <Link to={`/anuncios/editar/${ad.id}`} className="w-full">
                 <Button variant="outline" size="sm" className="w-full">
                   <Pencil className="w-4 h-4 mr-2" />
@@ -116,6 +117,7 @@ function AdsListGrid({ ads, onDelete }: { ads: any[]; onDelete: (id: number) => 
                 </Button>
               </Link>
 
+              {/* Botão de excluir */}
               <Button
                 variant="destructive"
                 size="sm"
