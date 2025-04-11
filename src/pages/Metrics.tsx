@@ -432,7 +432,7 @@ function MetricGauge({ title, value, unit, min, max }: MetricGaugeProps) {
         <div
           className="absolute inset-0 bg-gray-300 rounded-full"
           style={{
-            clipPath: `polygon(0 0, 50% 0, 50% 100%, 0 100%)`,
+            clipPath: `polygon(0 0, ${Math.min(100, Math.max(0, (parseFloat(value) / parseFloat(max)) * 100))}% 0, ${Math.min(100, Math.max(0, (parseFloat(value) / parseFloat(max)) * 100))}% 100%, 0 100%)`,
           }}
         ></div>
       </div>
