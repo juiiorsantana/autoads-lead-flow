@@ -12,22 +12,37 @@ export default function AdsList() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchAds() {
-      const { data, error } = await supabase
-        .from("anuncios")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Erro ao buscar anúncios:", error);
-      } else {
-        setAds(data || []);
-      }
-      setLoading(false);
-    }
-
     fetchAds();
   }, []);
+
+  async function fetchAds() {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("anuncios")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Erro ao buscar anúncios:", error);
+    } else {
+      setAds(data || []);
+    }
+    setLoading(false);
+  }
+
+  async function handleDelete(adId: number) {
+    const confirmDelete = confirm("Tem certeza que deseja excluir este anúncio?");
+    if (!confirmDelete) return;
+
+    const { error } = await supabase.from("anuncios").delete().eq("id", adId);
+
+    if (error) {
+      alert("Erro ao excluir o anúncio. Tente novamente.");
+      console.error(error);
+    } else {
+      setAds((prev) => prev.filter((ad) => ad.id !== adId));
+    }
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -54,7 +69,7 @@ export default function AdsList() {
             {loading ? (
               <p>Carregando anúncios...</p>
             ) : (
-              <AdsListGrid ads={filterAdsByStatus(ads, status)} />
+              <AdsListGrid ads={filterAdsByStatus(ads, status)} onDelete={handleDelete} />
             )}
           </TabsContent>
         ))}
@@ -69,7 +84,7 @@ function filterAdsByStatus(ads: any[], status: string) {
   return ads.filter((ad) => ad.status === status);
 }
 
-function AdsListGrid({ ads }: { ads: any[] }) {
+function AdsListGrid({ ads, onDelete }: { ads: any[]; onDelete: (id: number) => void }) {
   if (ads.length === 0) {
     return <EmptyState />;
   }
@@ -105,7 +120,7 @@ function AdsListGrid({ ads }: { ads: any[] }) {
                 variant="destructive"
                 size="sm"
                 className="w-full"
-                onClick={() => console.log("Excluir anúncio", ad.id)}
+                onClick={() => onDelete(ad.id)}
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Excluir
