@@ -4,8 +4,8 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlusCircle } from "lucide-react";
-import { supabase } from "@/lib/supabase"; // certifique-se de que esse import está correto
+import { PlusCircle, Trash2, Pencil } from "lucide-react";
+import { supabase } from "@/lib/supabase"; // certifique-se de que esse caminho está certo
 
 export default function AdsList() {
   const [ads, setAds] = useState<any[]>([]);
@@ -75,18 +75,43 @@ function AdsListGrid({ ads }: { ads: any[] }) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {ads.map((ad) => (
-        <Card key={ad.id} className="p-4 bg-white border border-gray-200">
-          <h4 className="font-bold">{ad.titulo}</h4>
-          <p className="text-sm text-gray-600">{ad.descricao}</p>
+        <Card
+          key={ad.id}
+          className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden"
+        >
           {ad.imagens?.[0] && (
             <img
               src={ad.imagens[0]}
               alt={ad.titulo}
-              className="w-full h-40 object-cover mt-2 rounded"
+              className="w-full h-48 object-cover"
             />
           )}
+          <div className="p-4 space-y-2">
+            <h4 className="text-lg font-semibold text-gray-900">{ad.titulo}</h4>
+            <p className="text-sm text-gray-600 line-clamp-2">{ad.descricao}</p>
+            <p className="text-xs text-gray-500">Status: <strong>{ad.status}</strong></p>
+
+            <div className="flex gap-2 mt-3">
+              <Link to={`/anuncios/editar/${ad.id}`} className="w-full">
+                <Button variant="outline" size="sm" className="w-full">
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Editar
+                </Button>
+              </Link>
+
+              <Button
+                variant="destructive"
+                size="sm"
+                className="w-full"
+                onClick={() => console.log("Excluir anúncio", ad.id)}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Excluir
+              </Button>
+            </div>
+          </div>
         </Card>
       ))}
     </div>
