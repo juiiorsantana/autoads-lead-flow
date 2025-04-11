@@ -17,6 +17,7 @@ import Dashboard from "./pages/Dashboard";
 import Metrics from "./pages/Metrics";
 import AdsList from "./pages/ads/AdsList";
 import NewAd from "./pages/ads/NewAd";
+import PublicAd from "./pages/PublicAd";
 import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
@@ -59,6 +60,7 @@ const App = () => {
             <Route path="/" element={session ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
             <Route path="/login" element={session ? <Navigate to="/dashboard" replace /> : <Login />} />
             <Route path="/register" element={session ? <Navigate to="/dashboard" replace /> : <Register />} />
+            <Route path="/:slug" element={<PublicAd />} />
             
             <Route element={<Layout />}>
               <Route path="/dashboard" element={<Dashboard />} />
