@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,17 +29,7 @@ export default function PublicAd() {
           throw new Error("Anúncio não encontrado");
         }
 
-        // Register view
-        const userAgent = navigator.userAgent;
-        const viewResponse = await supabase.rpc('register_view', { 
-          anuncio_slug: slug,
-          viewer_ip: '127.0.0.1', // In production, you'd get the real IP from a server
-          viewer_agent: userAgent
-        });
-
-        if (viewResponse.error) {
-          console.error("Error registering view:", viewResponse.error);
-        }
+        console.log("Fetching ad with slug:", slug);
 
         // Fetch ad data
         const { data: adData, error: adError } = await supabase
@@ -49,37 +40,63 @@ export default function PublicAd() {
             whatsapp_cliques:whatsapp_cliques(count)
           `)
           .eq('slug', slug)
-          .single();
+          .maybeSingle(); // Use maybeSingle instead of single to handle no results
 
-        if (adError) throw adError;
-        if (!adData) throw new Error("Anúncio não encontrado");
+        if (adError) {
+          console.error("Error fetching ad data:", adError);
+          throw adError;
+        }
+        
+        if (!adData) {
+          console.error("No ad found with slug:", slug);
+          throw new Error("Anúncio não encontrado");
+        }
 
+        console.log("Ad data retrieved:", adData);
         setAd(adData);
+        
+        // Register view after confirming the ad exists
+        const userAgent = navigator.userAgent;
+        const viewResponse = await supabase.rpc('register_view', { 
+          anuncio_slug: slug,
+          viewer_ip: '127.0.0.1', // In production, you'd get the real IP from a server
+          viewer_agent: userAgent
+        });
+
+        if (viewResponse.error) {
+          console.error("Error registering view:", viewResponse.error);
+        }
         
         // Get view and click counts
         setViewCount(adData.visualizacoes?.[0]?.count || 0);
         setClickCount(adData.whatsapp_cliques?.[0]?.count || 0);
 
         // Fetch seller profile
-        const { data: userData, error: userError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', adData.user_id)
-          .single();
+        if (adData.user_id) {
+          const { data: userData, error: userError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', adData.user_id)
+            .single();
 
-        if (!userError && userData) {
-          setSeller(userData);
-          
-          // Fetch other ads from same seller
-          const { data: otherAds } = await supabase
-            .from('anuncios')
-            .select('id, titulo, preco, imagens, slug')
-            .eq('user_id', adData.user_id)
-            .neq('id', adData.id)
-            .limit(4);
-          
-          if (otherAds) {
-            setSellerAds(otherAds);
+          if (userError) {
+            console.error("Error fetching seller profile:", userError);
+          } else if (userData) {
+            setSeller(userData);
+            
+            // Fetch other ads from same seller
+            const { data: otherAds, error: otherAdsError } = await supabase
+              .from('anuncios')
+              .select('id, titulo, preco, imagens, slug')
+              .eq('user_id', adData.user_id)
+              .neq('id', adData.id)
+              .limit(4);
+            
+            if (otherAdsError) {
+              console.error("Error fetching other seller ads:", otherAdsError);
+            } else if (otherAds) {
+              setSellerAds(otherAds);
+            }
           }
         }
       } catch (error) {
@@ -90,7 +107,9 @@ export default function PublicAd() {
       }
     };
 
-    fetchAdData();
+    if (slug) {
+      fetchAdData();
+    }
   }, [slug]);
 
   const handleWhatsAppClick = async () => {
