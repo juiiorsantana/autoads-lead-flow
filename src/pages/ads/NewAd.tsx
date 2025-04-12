@@ -162,7 +162,7 @@ export default function AdsList() {
         orcamento: parseFloat(data.dailySpend),
         detalhes: { whatsappLink: data.whatsappLink },
         video_url: data.videoUrl || null,
-        status: "em-análise",
+        status: "em-analise",
       });
 
       if (insertError) throw new Error(insertError.message);

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
@@ -74,7 +73,7 @@ export default function AdsList() {
     setLoading(false);
   }
 
-  async function handleDelete(adId: string) { // Changed from number to string
+  async function handleDelete(adId: string) {
     const confirmDelete = confirm("Tem certeza que deseja excluir este anúncio?");
     if (!confirmDelete) return;
 
@@ -168,7 +167,7 @@ export default function AdsList() {
         orcamento: parseFloat(data.dailySpend),
         detalhes: { whatsappLink: data.whatsappLink },
         video_url: data.videoUrl || null,
-        status: "em-análise",
+        status: "em-analise",
       });
 
       if (insertError) throw new Error(insertError.message);
@@ -418,7 +417,6 @@ function formatPrice(price: number) {
   });
 }
 
-// Updating the props to include setIsModalOpen
 function AdsListGrid({ 
   ads, 
   onDelete,
@@ -492,7 +490,6 @@ function AdsListGrid({
   );
 }
 
-// Update EmptyState to accept setIsModalOpen prop
 function EmptyState({ setIsModalOpen }: { setIsModalOpen: (isOpen: boolean) => void }) {
   return (
     <Card className="p-8 bg-white border border-gray-200 text-center">
