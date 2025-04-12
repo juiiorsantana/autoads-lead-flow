@@ -26,7 +26,7 @@ interface FormData {
 export default function AdsList() {
   const [ads, setAds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar o popup
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -68,7 +68,7 @@ export default function AdsList() {
     setLoading(false);
   }
 
-  async function handleDelete(adId: number) {
+  async function handleDelete(adId: string) {
     const confirmDelete = confirm("Tem certeza que deseja excluir este anúncio?");
     if (!confirmDelete) return;
 
@@ -176,7 +176,7 @@ export default function AdsList() {
       setImageFiles([]);
       setImagePreviews([]);
       form.reset();
-      fetchAds(); // Atualiza a lista de anúncios
+      fetchAds();
     } catch (error) {
       console.error("Erro ao criar anúncio:", error);
       toast({
@@ -195,7 +195,7 @@ export default function AdsList() {
     <div className="space-y-6 animate-fade-in">
       <Header title="Meus Anúncios">
         <Button
-          onClick={() => setIsModalOpen(true)} // Abre o popup
+          onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2"
         >
           <PlusCircle className="h-4 w-4" />
@@ -217,13 +217,12 @@ export default function AdsList() {
             {loading ? (
               <p>Carregando anúncios...</p>
             ) : (
-              <AdsListGrid ads={filterAdsByStatus(ads, status)} onDelete={handleDelete} />
+              <AdsListGrid ads={filterAdsByStatus(ads, status)} onDelete={handleDelete} setIsModalOpen={setIsModalOpen} />
             )}
           </TabsContent>
         ))}
       </Tabs>
 
-      {/* Popup (Modal) com o conteúdo do NewAd.tsx */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -400,9 +399,17 @@ function filterAdsByStatus(ads: any[], status: string) {
   return ads.filter((ad) => ad.status === status);
 }
 
-function AdsListGrid({ ads, onDelete }: { ads: any[]; onDelete: (id: number) => void }) {
+function AdsListGrid({ 
+  ads, 
+  onDelete,
+  setIsModalOpen
+}: { 
+  ads: any[]; 
+  onDelete: (id: string) => void; 
+  setIsModalOpen: (isOpen: boolean) => void;
+}) {
   if (ads.length === 0) {
-    return <EmptyState />;
+    return <EmptyState setIsModalOpen={setIsModalOpen} />;
   }
 
   return (
@@ -449,7 +456,7 @@ function AdsListGrid({ ads, onDelete }: { ads: any[]; onDelete: (id: number) => 
   );
 }
 
-function EmptyState() {
+function EmptyState({ setIsModalOpen }: { setIsModalOpen: (isOpen: boolean) => void }) {
   return (
     <Card className="p-8 bg-white border border-gray-200 text-center">
       <div className="space-y-4">
@@ -461,7 +468,7 @@ function EmptyState() {
 
         <div className="flex justify-center mt-4">
           <Button
-            onClick={() => setIsModalOpen(true)} // Abre o popup
+            onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2"
           >
             <PlusCircle className="h-4 w-4" />

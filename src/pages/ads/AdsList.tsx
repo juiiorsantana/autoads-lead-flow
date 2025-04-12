@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
@@ -73,7 +74,7 @@ export default function AdsList() {
     setLoading(false);
   }
 
-  async function handleDelete(adId: number) {
+  async function handleDelete(adId: string) { // Changed from number to string
     const confirmDelete = confirm("Tem certeza que deseja excluir este anúncio?");
     if (!confirmDelete) return;
 
@@ -222,7 +223,7 @@ export default function AdsList() {
             {loading ? (
               <p>Carregando anúncios...</p>
             ) : (
-              <AdsListGrid ads={filterAdsByStatus(ads, status)} onDelete={handleDelete} />
+              <AdsListGrid ads={filterAdsByStatus(ads, status)} onDelete={handleDelete} setIsModalOpen={setIsModalOpen} />
             )}
           </TabsContent>
         ))}
@@ -417,9 +418,18 @@ function formatPrice(price: number) {
   });
 }
 
-function AdsListGrid({ ads, onDelete }: { ads: any[]; onDelete: (id: number) => void }) {
+// Updating the props to include setIsModalOpen
+function AdsListGrid({ 
+  ads, 
+  onDelete,
+  setIsModalOpen 
+}: { 
+  ads: any[]; 
+  onDelete: (id: string) => void; 
+  setIsModalOpen: (isOpen: boolean) => void;
+}) {
   if (ads.length === 0) {
-    return <EmptyState />;
+    return <EmptyState setIsModalOpen={setIsModalOpen} />;
   }
 
   return (
@@ -482,7 +492,8 @@ function AdsListGrid({ ads, onDelete }: { ads: any[]; onDelete: (id: number) => 
   );
 }
 
-function EmptyState() {
+// Update EmptyState to accept setIsModalOpen prop
+function EmptyState({ setIsModalOpen }: { setIsModalOpen: (isOpen: boolean) => void }) {
   return (
     <Card className="p-8 bg-white border border-gray-200 text-center">
       <div className="space-y-4">
