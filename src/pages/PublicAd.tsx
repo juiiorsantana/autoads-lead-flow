@@ -3,12 +3,15 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageCircle, MapPin, Eye, ArrowLeft, Share2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "@/hooks/use-toast";
-import { Badge } from "@/components/ui/badge";
+
+import { AdCarousel } from "@/components/ads/AdCarousel";
+import { AdHeader } from "@/components/ads/AdHeader";
+import { AdDetails } from "@/components/ads/AdDetails";
+import { AdVideo } from "@/components/ads/AdVideo";
+import { SellerOtherAds } from "@/components/ads/SellerOtherAds";
 
 export default function PublicAd() {
   const { slug } = useParams<{ slug: string }>();
@@ -186,13 +189,6 @@ export default function PublicAd() {
     );
   }
 
-  const formatPrice = (price: number) => {
-    return price.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    });
-  };
-
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Back button for mobile */}
@@ -206,152 +202,35 @@ export default function PublicAd() {
       <div className="container max-w-lg mx-auto p-0 md:p-4">
         <Card className="overflow-hidden bg-white rounded-lg shadow-sm md:shadow border-0 md:border">
           {/* Header */}
-          <div className="p-4 flex items-center border-b">
-            <Avatar className="h-12 w-12">
-              <AvatarImage src={seller?.avatar_url} />
-              <AvatarFallback>{seller?.full_name?.charAt(0) || "U"}</AvatarFallback>
-            </Avatar>
-            <div className="ml-3 flex-1">
-              <p className="font-medium text-sm">{seller?.full_name || "Usuário"}</p>
-              <div className="flex items-center text-xs text-gray-500">
-                <MapPin className="h-3 w-3 mr-1" />
-                <span>{ad.localizacao || "Brasil"}</span>
-              </div>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="rounded-full h-9 w-9 p-0"
-              onClick={handleShareClick}
-            >
-              <Share2 className="h-5 w-5" />
-            </Button>
-          </div>
+          <AdHeader 
+            seller={seller} 
+            ad={ad} 
+            onShareClick={handleShareClick} 
+          />
 
           {/* Image carousel */}
-          <div className="bg-black">
-            <Carousel className="w-full">
-              <CarouselContent>
-                {Array.isArray(ad.imagens) && ad.imagens.map((img: string, i: number) => (
-                  <CarouselItem key={i}>
-                    <div className="flex aspect-square items-center justify-center p-0">
-                      <img 
-                        src={img} 
-                        alt={`${ad.titulo} - Imagem ${i+1}`} 
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className={isMobile ? "left-2" : "-left-12"} />
-              <CarouselNext className={isMobile ? "right-2" : "-right-12"} />
-            </Carousel>
-          </div>
+          <AdCarousel 
+            images={ad.imagens} 
+            title={ad.titulo} 
+          />
 
           {/* Ad details */}
-          <div className="p-4 space-y-4">
-            <h1 className="text-xl font-bold">{ad.titulo}</h1>
-            <p className="text-3xl font-bold text-primary">{formatPrice(ad.preco)}</p>
-            
-            <div className="py-4 border-t border-b">
-              <p className="text-gray-700 whitespace-pre-line">{ad.descricao}</p>
-            </div>
+          <AdDetails 
+            ad={ad} 
+            onWhatsAppClick={handleWhatsAppClick} 
+          />
 
-            {/* Stats */}
-            <div className="flex justify-between text-sm text-gray-500">
-              <div className="flex items-center">
-                <Eye className="h-4 w-4 mr-1" />
-                <span>{ad.visualizacoes || 0} visualizações</span>
-              </div>
-              <div className="flex items-center">
-                <MessageCircle className="h-4 w-4 mr-1" />
-                <span>{ad.clics_whatsapp || 0} contatos</span>
-              </div>
-            </div>
-
-            {/* Link Público */}
-            <div className="p-3 bg-gray-50 rounded-lg text-sm">
-              <p className="text-gray-500 mb-1">Link público:</p>
-              <div className="flex items-center justify-between">
-                <code className="text-xs bg-gray-100 p-1 rounded flex-1 overflow-hidden">
-                  https://autolink.app/{slug}
-                </code>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="ml-2" 
-                  onClick={() => {
-                    navigator.clipboard.writeText(`https://autolink.app/${slug}`);
-                    toast({ title: "Link copiado!" });
-                  }}
-                >
-                  Copiar
-                </Button>
-              </div>
-            </div>
-
-            {/* WhatsApp button */}
-            <Button 
-              className="w-full py-6 text-lg gap-2 bg-green-500 hover:bg-green-600 rounded-full animate-pulse" 
-              onClick={handleWhatsAppClick}
-            >
-              <MessageCircle className="h-5 w-5" />
-              Conversar pelo WhatsApp
-            </Button>
-
-            {/* Video (if provided) */}
-            {(ad.video_url || ad.video_do_anuncio) && (
-              <div className="mt-6 border-t pt-4">
-                <h3 className="font-medium mb-3">Vídeo do veículo</h3>
-                <div className="aspect-video w-full overflow-hidden rounded-lg">
-                  <iframe
-                    src={(ad.video_do_anuncio || ad.video_url || '').replace('watch?v=', 'embed/')}
-                    className="w-full h-full"
-                    allowFullScreen
-                    title="Video do anúncio"
-                  />
-                </div>
-              </div>
-            )}
+          {/* Video (if provided) */}
+          <div className="p-4">
+            <AdVideo 
+              videoUrl={ad.video_do_anuncio || ad.video_url} 
+            />
 
             {/* Other seller ads */}
-            {sellerAds.length > 0 && (
-              <div className="mt-6 border-t pt-4">
-                <h3 className="font-medium mb-3">Mais anúncios deste vendedor</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {sellerAds.map(otherAd => (
-                    <div 
-                      key={otherAd.id}
-                      className="group overflow-hidden rounded-lg border cursor-pointer hover:shadow-md transition-all"
-                      onClick={() => navigate(`/${otherAd.slug}`)}
-                    >
-                      <div className="aspect-square overflow-hidden">
-                        <img 
-                          src={otherAd.imagens[0]} 
-                          alt={otherAd.titulo}
-                          className="object-cover w-full h-full group-hover:scale-105 transition-transform"
-                        />
-                      </div>
-                      <div className="p-2">
-                        <p className="text-xs font-medium truncate">{otherAd.titulo}</p>
-                        <p className="text-sm font-bold text-primary">{formatPrice(otherAd.preco)}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {sellerAds.length > 3 && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full mt-3"
-                    onClick={() => navigate(`/vendedor/${seller.id}`)}
-                  >
-                    Ver todos os anúncios
-                  </Button>
-                )}
-              </div>
-            )}
+            <SellerOtherAds 
+              sellerAds={sellerAds} 
+              sellerId={seller?.id} 
+            />
 
             {/* Footer */}
             <div className="flex justify-between items-center pt-4 text-xs text-gray-500">

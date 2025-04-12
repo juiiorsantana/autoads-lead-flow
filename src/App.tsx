@@ -66,6 +66,9 @@ const App = () => {
             <Route path="/register" element={session ? <Navigate to="/dashboard" replace /> : <Register />} />
             <Route path="/:slug" element={<PublicAd />} />
             
+            {/* Nova rota adicional para formato /anuncios/publico/:slug */}
+            <Route path="/anuncios/publico/:slug" element={<PublicAd />} />
+            
             <Route element={<Layout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/metricas" element={<Metrics />} />
