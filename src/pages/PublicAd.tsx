@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageCircle, MapPin, Eye, ArrowLeft, Share2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 export default function PublicAd() {
   const { slug } = useParams<{ slug: string }>();
@@ -18,8 +18,6 @@ export default function PublicAd() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [seller, setSeller] = useState<any>(null);
-  const [viewCount, setViewCount] = useState(0);
-  const [clickCount, setClickCount] = useState(0);
   const [sellerAds, setSellerAds] = useState<any[]>([]);
 
   useEffect(() => {
@@ -34,13 +32,9 @@ export default function PublicAd() {
         // Fetch ad data
         const { data: adData, error: adError } = await supabase
           .from('anuncios')
-          .select(`
-            *,
-            visualizacoes:visualizacoes(count),
-            whatsapp_cliques:whatsapp_cliques(count)
-          `)
+          .select('*')
           .eq('slug', slug)
-          .maybeSingle(); // Use maybeSingle instead of single to handle no results
+          .maybeSingle();
 
         if (adError) {
           console.error("Error fetching ad data:", adError);
@@ -66,10 +60,6 @@ export default function PublicAd() {
         if (viewResponse.error) {
           console.error("Error registering view:", viewResponse.error);
         }
-        
-        // Get view and click counts
-        setViewCount(adData.visualizacoes?.[0]?.count || 0);
-        setClickCount(adData.whatsapp_cliques?.[0]?.count || 0);
 
         // Fetch seller profile
         if (adData.user_id) {
@@ -123,9 +113,6 @@ export default function PublicAd() {
         clicker_ip: '127.0.0.1', // In production, you'd get the real IP
         clicker_agent: userAgent
       });
-
-      // Update local click count for immediate UI feedback
-      setClickCount(prev => prev + 1);
 
       // Get WhatsApp number from ad details
       const whatsappNumber = ad.detalhes?.whatsappLink;
@@ -275,17 +262,38 @@ export default function PublicAd() {
             <div className="flex justify-between text-sm text-gray-500">
               <div className="flex items-center">
                 <Eye className="h-4 w-4 mr-1" />
-                <span>{viewCount} visualizações</span>
+                <span>{ad.visualizacoes || 0} visualizações</span>
               </div>
               <div className="flex items-center">
                 <MessageCircle className="h-4 w-4 mr-1" />
-                <span>{clickCount} contatos</span>
+                <span>{ad.clics_whatsapp || 0} contatos</span>
+              </div>
+            </div>
+
+            {/* Link Público */}
+            <div className="p-3 bg-gray-50 rounded-lg text-sm">
+              <p className="text-gray-500 mb-1">Link público:</p>
+              <div className="flex items-center justify-between">
+                <code className="text-xs bg-gray-100 p-1 rounded flex-1 overflow-hidden">
+                  https://autolink.app/{slug}
+                </code>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="ml-2" 
+                  onClick={() => {
+                    navigator.clipboard.writeText(`https://autolink.app/${slug}`);
+                    toast({ title: "Link copiado!" });
+                  }}
+                >
+                  Copiar
+                </Button>
               </div>
             </div>
 
             {/* WhatsApp button */}
             <Button 
-              className="w-full py-6 text-lg gap-2 bg-green-500 hover:bg-green-600 animate-pulse" 
+              className="w-full py-6 text-lg gap-2 bg-green-500 hover:bg-green-600 rounded-full animate-pulse" 
               onClick={handleWhatsAppClick}
             >
               <MessageCircle className="h-5 w-5" />
@@ -293,12 +301,12 @@ export default function PublicAd() {
             </Button>
 
             {/* Video (if provided) */}
-            {ad.video_url && (
+            {(ad.video_url || ad.video_do_anuncio) && (
               <div className="mt-6 border-t pt-4">
                 <h3 className="font-medium mb-3">Vídeo do veículo</h3>
                 <div className="aspect-video w-full overflow-hidden rounded-lg">
                   <iframe
-                    src={ad.video_url.replace('watch?v=', 'embed/')}
+                    src={(ad.video_do_anuncio || ad.video_url || '').replace('watch?v=', 'embed/')}
                     className="w-full h-full"
                     allowFullScreen
                     title="Video do anúncio"

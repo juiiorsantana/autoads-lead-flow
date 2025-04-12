@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       anuncios: {
         Row: {
+          clics_whatsapp: number
           created_at: string
           descricao: string | null
           detalhes: Json | null
@@ -24,9 +25,12 @@ export type Database = {
           titulo: string
           updated_at: string
           user_id: string
+          video_do_anuncio: string | null
           video_url: string | null
+          visualizacoes: number
         }
         Insert: {
+          clics_whatsapp?: number
           created_at?: string
           descricao?: string | null
           detalhes?: Json | null
@@ -40,9 +44,12 @@ export type Database = {
           titulo: string
           updated_at?: string
           user_id: string
+          video_do_anuncio?: string | null
           video_url?: string | null
+          visualizacoes?: number
         }
         Update: {
+          clics_whatsapp?: number
           created_at?: string
           descricao?: string | null
           detalhes?: Json | null
@@ -56,7 +63,9 @@ export type Database = {
           titulo?: string
           updated_at?: string
           user_id?: string
+          video_do_anuncio?: string | null
           video_url?: string | null
+          visualizacoes?: number
         }
         Relationships: []
       }

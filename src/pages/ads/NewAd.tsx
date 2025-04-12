@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
@@ -119,6 +120,7 @@ export default function AdsList() {
         return;
       }
 
+      // Generate unique slug using the new format
       const res = await supabase.rpc("generate_unique_slug", {
         title: data.carName,
       });
@@ -151,6 +153,10 @@ export default function AdsList() {
         imageUrls.push(urlData.publicUrl);
       }
 
+      // Prepare the public link
+      const publicLink = `https://autolink.app/${slug}`;
+
+      // Insert the ad with the new fields
       const { error: insertError } = await supabase.from("anuncios").insert({
         titulo: data.carName,
         preco: parseFloat(data.price),
@@ -160,9 +166,15 @@ export default function AdsList() {
         localizacao: "Brasil",
         user_id: userId,
         orcamento: parseFloat(data.dailySpend),
-        detalhes: { whatsappLink: data.whatsappLink },
+        detalhes: { 
+          whatsappLink: data.whatsappLink,
+          publicLink: publicLink
+        },
         video_url: data.videoUrl || null,
+        video_do_anuncio: data.videoUrl || null,
         status: "em-analise",
+        visualizacoes: 0,
+        clics_whatsapp: 0
       });
 
       if (insertError) throw new Error(insertError.message);
