@@ -4,7 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlusCircle, Trash2, Pencil, Upload, X } from "lucide-react";
+import { PlusCircle, Trash2, Pencil, Upload, X, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -57,13 +57,17 @@ export default function AdsList() {
     setLoading(true);
     const { data, error } = await supabase
       .from("anuncios")
-      .select("*")
+      .select(`
+        *,
+        visualizacoes:visualizacoes(count),
+        whatsapp_cliques:whatsapp_cliques(count)
+      `)
       .order("created_at", { ascending: false });
 
     if (error) {
       console.error("Erro ao buscar anúncios:", error);
     } else {
-      console.log("Anúncios carregados:", data); // Para debug
+      console.log("Anúncios carregados:", data);
       setAds(data || []);
     }
     setLoading(false);
@@ -397,13 +401,20 @@ export default function AdsList() {
 function normalizeStatus(status: string) {
   return status
     .toLowerCase()
-    .replace(/[^a-z0-9]/g, ""); // Remove acentos, espaços, hífen, etc.
+    .replace(/[^a-z0-9]/g, "");
 }
 
 function filterAdsByStatus(ads: any[], status: string) {
   if (status === "todos") return ads;
   const normalizedStatus = normalizeStatus(status);
   return ads.filter((ad) => normalizeStatus(ad.status) === normalizedStatus);
+}
+
+function formatPrice(price: number) {
+  return price.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  });
 }
 
 function AdsListGrid({ ads, onDelete }: { ads: any[]; onDelete: (id: number) => void }) {
@@ -427,17 +438,33 @@ function AdsListGrid({ ads, onDelete }: { ads: any[]; onDelete: (id: number) => 
           )}
           <div className="p-4 space-y-2">
             <h4 className="text-lg font-semibold text-gray-900">{ad.titulo}</h4>
+            <p className="text-md font-bold text-primary">{formatPrice(ad.preco)}</p>
             <p className="text-sm text-gray-600 line-clamp-2">{ad.descricao}</p>
+            <p className="text-xs text-gray-500">Localização: <strong>{ad.localizacao || "Não informada"}</strong></p>
             <p className="text-xs text-gray-500">Status: <strong>{ad.status}</strong></p>
+            <div className="flex items-center text-xs text-gray-500 space-x-4">
+              <div className="flex items-center">
+                <Eye className="h-4 w-4 mr-1" />
+                <span>{ad.visualizacoes?.[0]?.count || 0} visualizações</span>
+              </div>
+              <div className="flex items-center">
+                <span>{ad.whatsapp_cliques?.[0]?.count || 0} contatos</span>
+              </div>
+            </div>
 
             <div className="flex gap-2 mt-3">
+              <Link to={`/anuncios/publico/${ad.slug}`} className="w-full">
+                <Button variant="outline" size="sm" className="w-full">
+                  <Eye className="w-4 h-4 mr-2" />
+                  Ver Anúncio Público
+                </Button>
+              </Link>
               <Link to={`/anuncios/editar/${ad.id}`} className="w-full">
                 <Button variant="outline" size="sm" className="w-full">
                   <Pencil className="w-4 h-4 mr-2" />
                   Editar
                 </Button>
               </Link>
-
               <Button
                 variant="destructive"
                 size="sm"
