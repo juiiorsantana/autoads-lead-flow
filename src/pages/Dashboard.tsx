@@ -13,6 +13,7 @@ interface Anuncio {
   descricao: string;
   preco: number;
   status: string;
+  imagens: string[];  // Novo campo para armazenar as imagens
 }
 
 export default function Dashboard() {
@@ -63,6 +64,14 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtrados.map(anuncio => (
           <Card key={anuncio.id} className="p-4">
+            {/* Exibe a imagem do anúncio, se disponível */}
+            {anuncio.imagens.length > 0 && (
+              <img
+                src={anuncio.imagens[0]} // Usando a primeira imagem do anúncio
+                alt={anuncio.titulo}
+                className="h-32 w-full object-cover rounded-md mb-4"
+              />
+            )}
             <h3 className="text-lg font-semibold">{anuncio.titulo}</h3>
             <p className="text-gray-500">{anuncio.descricao}</p>
             <p className="text-primary font-bold mt-2">R$ {anuncio.preco}</p>
