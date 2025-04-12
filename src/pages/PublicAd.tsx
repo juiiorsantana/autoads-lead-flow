@@ -5,17 +5,21 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageCircle, MapPin, Eye, ArrowLeft } from "lucide-react";
+import { MessageCircle, MapPin, Eye, ArrowLeft, Share2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { toast } from "@/hooks/use-toast";
 
 export default function PublicAd() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [ad, setAd] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [seller, setSeller] = useState<any>(null);
   const [viewCount, setViewCount] = useState(0);
   const [clickCount, setClickCount] = useState(0);
+  const [sellerAds, setSellerAds] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchAdData = async () => {
@@ -65,6 +69,18 @@ export default function PublicAd() {
 
         if (!userError && userData) {
           setSeller(userData);
+          
+          // Fetch other ads from same seller
+          const { data: otherAds } = await supabase
+            .from('anuncios')
+            .select('id, titulo, preco, imagens, slug')
+            .eq('user_id', adData.user_id)
+            .neq('id', adData.id)
+            .limit(4);
+          
+          if (otherAds) {
+            setSellerAds(otherAds);
+          }
         }
       } catch (error) {
         console.error("Error fetching ad:", error);
@@ -104,6 +120,45 @@ export default function PublicAd() {
       window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
     } catch (error) {
       console.error("Error opening WhatsApp:", error);
+      toast({
+        title: "Erro ao abrir WhatsApp",
+        description: "Não foi possível conectar com o vendedor. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const handleShareClick = async () => {
+    if (!ad) return;
+    
+    const shareUrl = window.location.href;
+    const shareTitle = `${ad.titulo} - R$ ${ad.preco.toLocaleString('pt-BR')}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: `Confira este ${ad.titulo} à venda!`,
+          url: shareUrl,
+        });
+        toast({
+          title: "Link compartilhado",
+          description: "Obrigado por compartilhar este anúncio!",
+        });
+      } catch (error) {
+        console.error("Error sharing:", error);
+      }
+    } else {
+      // Fallback to clipboard
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: "Link copiado!",
+          description: "Link do anúncio copiado para a área de transferência.",
+        });
+      } catch (error) {
+        console.error("Error copying to clipboard:", error);
+      }
     }
   };
 
@@ -142,21 +197,29 @@ export default function PublicAd() {
         </Button>
       </div>
 
-      <div className="container max-w-3xl mx-auto p-4">
-        <Card className="overflow-hidden bg-white rounded-lg shadow">
+      <div className="container max-w-lg mx-auto p-0 md:p-4">
+        <Card className="overflow-hidden bg-white rounded-lg shadow-sm md:shadow border-0 md:border">
           {/* Header */}
           <div className="p-4 flex items-center border-b">
             <Avatar className="h-12 w-12">
               <AvatarImage src={seller?.avatar_url} />
               <AvatarFallback>{seller?.full_name?.charAt(0) || "U"}</AvatarFallback>
             </Avatar>
-            <div className="ml-3">
+            <div className="ml-3 flex-1">
               <p className="font-medium text-sm">{seller?.full_name || "Usuário"}</p>
               <div className="flex items-center text-xs text-gray-500">
                 <MapPin className="h-3 w-3 mr-1" />
                 <span>{ad.localizacao || "Brasil"}</span>
               </div>
             </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="rounded-full h-9 w-9 p-0"
+              onClick={handleShareClick}
+            >
+              <Share2 className="h-5 w-5" />
+            </Button>
           </div>
 
           {/* Image carousel */}
@@ -175,25 +238,10 @@ export default function PublicAd() {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="left-2" />
-              <CarouselNext className="right-2" />
+              <CarouselPrevious className={isMobile ? "left-2" : "-left-12"} />
+              <CarouselNext className={isMobile ? "right-2" : "-right-12"} />
             </Carousel>
           </div>
-
-          {/* Video (if provided) */}
-          {ad.video_url && (
-            <div className="p-4 border-t">
-              <h3 className="font-medium mb-2">Vídeo</h3>
-              <div className="aspect-video w-full">
-                <iframe
-                  src={ad.video_url.replace('watch?v=', 'embed/')}
-                  className="w-full h-full"
-                  allowFullScreen
-                  title="Video do anúncio"
-                />
-              </div>
-            </div>
-          )}
 
           {/* Ad details */}
           <div className="p-4 space-y-4">
@@ -218,19 +266,73 @@ export default function PublicAd() {
 
             {/* WhatsApp button */}
             <Button 
-              className="w-full py-6 text-lg gap-2" 
+              className="w-full py-6 text-lg gap-2 bg-green-500 hover:bg-green-600 animate-pulse" 
               onClick={handleWhatsAppClick}
             >
               <MessageCircle className="h-5 w-5" />
               Conversar pelo WhatsApp
             </Button>
 
+            {/* Video (if provided) */}
+            {ad.video_url && (
+              <div className="mt-6 border-t pt-4">
+                <h3 className="font-medium mb-3">Vídeo do veículo</h3>
+                <div className="aspect-video w-full overflow-hidden rounded-lg">
+                  <iframe
+                    src={ad.video_url.replace('watch?v=', 'embed/')}
+                    className="w-full h-full"
+                    allowFullScreen
+                    title="Video do anúncio"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Other seller ads */}
+            {sellerAds.length > 0 && (
+              <div className="mt-6 border-t pt-4">
+                <h3 className="font-medium mb-3">Mais anúncios deste vendedor</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {sellerAds.map(otherAd => (
+                    <div 
+                      key={otherAd.id}
+                      className="group overflow-hidden rounded-lg border cursor-pointer hover:shadow-md transition-all"
+                      onClick={() => navigate(`/${otherAd.slug}`)}
+                    >
+                      <div className="aspect-square overflow-hidden">
+                        <img 
+                          src={otherAd.imagens[0]} 
+                          alt={otherAd.titulo}
+                          className="object-cover w-full h-full group-hover:scale-105 transition-transform"
+                        />
+                      </div>
+                      <div className="p-2">
+                        <p className="text-xs font-medium truncate">{otherAd.titulo}</p>
+                        <p className="text-sm font-bold text-primary">{formatPrice(otherAd.preco)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {sellerAds.length > 3 && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full mt-3"
+                    onClick={() => navigate(`/vendedor/${seller.id}`)}
+                  >
+                    Ver todos os anúncios
+                  </Button>
+                )}
+              </div>
+            )}
+
             {/* Footer */}
-            <div className="flex justify-between items-center pt-4 text-sm">
-              <p className="text-gray-500">© 2025 AutoAds LeadFlow</p>
+            <div className="flex justify-between items-center pt-4 text-xs text-gray-500">
+              <p>© 2025 AutoAds LeadFlow</p>
               <Button 
-                variant="outline" 
+                variant="ghost" 
                 size="sm" 
+                className="text-xs"
                 onClick={() => navigate('/')}
               >
                 Ver mais anúncios
