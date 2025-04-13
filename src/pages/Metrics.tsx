@@ -16,6 +16,8 @@ export default function Metrics() {
   const [csvData, setCsvData] = useState<CampaignData[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasFile, setHasFile] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [pageIndex, setPageIndex] = useState(0);
 
   const fetchMetrics = async () => {
     setIsLoading(true);
@@ -103,42 +105,7 @@ export default function Metrics() {
         });
 
         if (formattedData.length > 0) {
-          supabase
-            .from('campaign_metrics')
-            .insert(formattedData)
-            .then(({ data, error }) => {
-              if (error) {
-                console.error('Error inserting data:', Error);
-                toast({
-                  title: 'Erro ao salvar métricas',
-                  description:
-                    'Ocorreu um erro ao salvar os dados no banco de dados.',
-                  variant: 'destructive',
-                });
-              } else {
-                console.log('Data inserted successfully:', data);
-                setHasFile(true);
-                toast({
-                  title: 'Métricas salvas com sucesso',
-                  description:
-                    'Os dados das métricas foram salvos no banco de dados.',
-                });
-                toast({
-                  description:
-                    'Os dados das métricas foram salvos no banco de dados.',
-                });
-                fetchMetrics();
-              }
-            })
-            .catch((err) => {
-              console.error('Error during insertion:', err);
-              toast({
-                title: 'Erro ao salvar métricas',
-                description: 'Ocorreu um erro inesperado ao salvar os dados.',
-                variant: 'destructive',
-              });
-            })
-            .finally(() => setIsLoading(false));
+          processAndSaveData(formattedData);
         }
       } catch (error) {
         console.error("Error parsing CSV:", Error);
@@ -164,6 +131,82 @@ export default function Metrics() {
       reader.readAsText(file);
     }
   };
+
+  const processAndSaveData = async (data: Record<string, any>[]) => {
+    try {
+      // Get the current user's ID
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Erro de autenticação",
+          description: "Você precisa estar autenticado para salvar dados.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Add user_id to each record in the data array
+      const dataWithUserId = data.map(item => ({
+        ...item,
+        user_id: user.id
+      }));
+      
+      // Now insert the data with user_id properly included
+      const { error } = await supabase
+        .from('campaign_metrics')
+        .insert(dataWithUserId);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Dados importados com sucesso",
+        description: `${data.length} registros foram salvos.`
+      });
+      
+      setUploadSuccess(true);
+      setPageIndex(0); // Return to metrics overview
+    } catch (error: any) {
+      console.error("Error saving data:", error);
+      toast({
+        title: "Erro ao salvar dados",
+        description: error.message || "Ocorreu um erro ao salvar os dados.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  useEffect(() => {
+    const fetchCampaignData = async () => {
+      setLoading(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          const { data, error } = await supabase
+            .from('campaign_metrics')
+            .select('*')
+            .eq('user_id', user.id);
+            
+          if (error) throw error;
+          setCsvData(data || []);
+        }
+      } catch (error) {
+        console.error("Error fetching campaign data:", error);
+        toast({
+          title: "Erro ao carregar dados",
+          description: "Não foi possível carregar os dados de campanhas.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchCampaignData().catch(error => {
+      console.error("Unhandled promise rejection:", error);
+    });
+  }, []);
 
   return (
     <div className="space-y-6 animate-fade-in pb-6">

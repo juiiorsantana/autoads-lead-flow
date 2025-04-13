@@ -32,6 +32,23 @@ export async function initBuckets() {
       console.log('Bucket de perfis criado com sucesso!');
     }
     
+    // Verificar se o bucket de anúncios existe, senão criar
+    const anunciosBucketExists = buckets?.some(bucket => bucket.name === 'anuncios');
+    
+    // Se não existir, criar o bucket
+    if (!anunciosBucketExists) {
+      const { error: createError } = await supabase.storage.createBucket('anuncios', {
+        public: true, // Bucket público para permitir acesso às imagens
+      });
+      
+      if (createError) {
+        console.error('Erro ao criar bucket de anúncios:', createError);
+        return;
+      }
+      
+      console.log('Bucket de anúncios criado com sucesso!');
+    }
+    
   } catch (error) {
     console.error('Erro ao inicializar buckets:', error);
   }

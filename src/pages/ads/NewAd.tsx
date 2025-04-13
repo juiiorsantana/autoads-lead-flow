@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
@@ -114,18 +113,18 @@ export default function NewAd() {
       if (data) {
         setCurrentAd(data);
         
-        // Populate form with existing data
+        const detailsObj = typeof data.detalhes === 'object' ? data.detalhes : {};
+        
         form.reset({
           carName: data.titulo,
           price: data.preco.toString(),
           description: data.descricao || "",
-          whatsappLink: data.detalhes?.whatsappLink || "",
+          whatsappLink: detailsObj?.whatsappLink || "",
           dailySpend: data.orcamento?.toString() || "",
           videoUrl: data.video_url || "",
-          adType: data.detalhes?.adType || "normal",
+          adType: (detailsObj?.adType as "normal" | "priority" | "professional") || "normal",
         });
         
-        // Set image previews
         if (data.imagens && data.imagens.length > 0) {
           setImagePreviews(data.imagens);
         }
@@ -186,16 +185,13 @@ export default function NewAd() {
   };
 
   const removeImage = (index: number) => {
-    // For edit mode, we need to handle removing images differently
     if (isEditMode && index < (currentAd?.imagens?.length || 0)) {
-      // Just remove from previews, but track which ones to delete on save
       const newPreviews = [...imagePreviews];
       newPreviews.splice(index, 1);
       setImagePreviews(newPreviews);
       return;
     }
     
-    // For new images (or create mode)
     const newFiles = [...imageFiles];
     const newPreviews = [...imagePreviews];
 
@@ -203,7 +199,6 @@ export default function NewAd() {
       URL.revokeObjectURL(newPreviews[index]);
     }
 
-    // Adjust index for new files if we're in edit mode
     const fileIndex = isEditMode 
       ? index - (currentAd?.imagens?.length || 0) 
       : index;
@@ -235,27 +230,24 @@ export default function NewAd() {
       if (!userId) throw new Error("Usuário não autenticado");
 
       let imageUrls: string[] = [];
-      
-      // If editing, start with existing images that weren't removed
+      let adSlug = "";
+
       if (isEditMode && currentAd?.imagens) {
-        // Only take the images that are still in the previews
         const remainingOldImages = currentAd.imagens.filter(
           (img: string) => imagePreviews.includes(img)
         );
         imageUrls = [...remainingOldImages];
+        adSlug = currentAd.slug;
       }
 
-      // Upload new images
       if (imageFiles.length > 0) {
-        // Generate unique slug for the ad
-        let slug = currentAd?.slug;
         if (!isEditMode) {
           const res = await supabase.rpc("generate_unique_slug", {
             title: data.carName,
           });
           
           if (res.error) throw new Error(res.error.message);
-          slug = res.data;
+          adSlug = res.data;
         }
 
         for (const file of imageFiles) {
@@ -264,8 +256,7 @@ export default function NewAd() {
             .toString(36)
             .substring(2, 15)}.${fileExt}`;
           
-          // Use the existing slug or the new one
-          const filePath = `${userId}/${slug}/${fileName}`;
+          const filePath = `${userId}/${adSlug}/${fileName}`;
 
           const { error: uploadError } = await supabase.storage
             .from("anuncios")
@@ -282,10 +273,7 @@ export default function NewAd() {
         }
       }
 
-      // Prepare the public link
-      const publicLink = isEditMode && currentAd.slug 
-        ? `https://autolink.app/${currentAd.slug}`
-        : `https://autolink.app/${slug}`;
+      const publicLink = `https://autolink.app/${adSlug}`;
 
       const adData = {
         titulo: data.carName,
@@ -307,21 +295,22 @@ export default function NewAd() {
       let result;
       
       if (isEditMode) {
-        // Update existing ad
         result = await supabase
           .from("anuncios")
           .update(adData)
           .eq("id", id);
       } else {
-        // Create new ad
-        adData.slug = slug;
-        adData.localizacao = "Brasil";
-        adData.visualizacoes = 0;
-        adData.clics_whatsapp = 0;
+        const newAdData = {
+          ...adData,
+          slug: adSlug,
+          localizacao: "Brasil",
+          visualizacoes: 0,
+          clics_whatsapp: 0
+        };
         
         result = await supabase
           .from("anuncios")
-          .insert(adData);
+          .insert(newAdData);
       }
 
       if (result.error) throw new Error(result.error.message);

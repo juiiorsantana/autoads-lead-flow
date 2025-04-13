@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from "react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -64,15 +63,30 @@ export default function Profile() {
           return;
         }
 
-        setProfileData({
-          fullName: profileData?.full_name || user.user_metadata?.full_name || "",
-          businessName: profileData?.business_name || "",
-          email: user.email || "",
-          phone: profileData?.phone || "",
-          documentId: profileData?.document_id || "",
-          about: profileData?.about || "",
-          avatarUrl: profileData?.avatar_url || "",
-        });
+        // Check if profile exists
+        if (profileData) {
+          // Set profile data with type safety 
+          setProfileData({
+            fullName: profileData.full_name || user.user_metadata?.full_name || "",
+            businessName: profileData.business_name || "",
+            email: user.email || "",
+            phone: profileData.phone || "",
+            documentId: profileData.document_id || "",
+            about: profileData.about || "",
+            avatarUrl: profileData.avatar_url || "",
+          });
+        } else {
+          // Create a basic profile if it doesn't exist
+          setProfileData({
+            fullName: user.user_metadata?.full_name || "",
+            businessName: "",
+            email: user.email || "",
+            phone: "",
+            documentId: "",
+            about: "",
+            avatarUrl: "",
+          });
+        }
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -97,7 +111,7 @@ export default function Profile() {
         data: { full_name: profileData.fullName }
       });
 
-      // Update profile in profiles table
+      // Update profile in profiles table with all fields
       const { error } = await supabase
         .from('profiles')
         .upsert({
@@ -206,7 +220,6 @@ export default function Profile() {
     }
   };
 
-  // Generate initials from name
   const getInitials = (name: string) => {
     return name
       .split(' ')
