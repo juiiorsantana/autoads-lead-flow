@@ -1,3 +1,4 @@
+
 // Import necessary libraries and components
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -24,12 +25,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Json } from '@/integrations/supabase/types';
 
 interface AdType {
   value: 'normal' | 'priority' | 'professional';
   label: string;
   description: string;
   enabled: boolean;
+}
+
+// Define AdDetails interface to match the JSON structure
+interface AdDetails {
+  whatsappLink: string;
+  publicLink: string;
+  adType: 'normal' | 'priority' | 'professional';
+  [key: string]: string; // Add index signature to make it compatible with Json type
 }
 
 export default function NewAd() {
@@ -51,35 +61,6 @@ export default function NewAd() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isPublicLinkEnabled, setIsPublicLinkEnabled] = useState(false);
 
-  // For handling detalhes JSON field properly with TypeScript
-  interface AdDetails {
-    whatsappLink: string;
-    publicLink: string;
-    adType: 'normal' | 'priority' | 'professional';
-  }
-
-  // Get ad types for selection
-  const adTypes: AdType[] = [
-    {
-      value: 'normal',
-      label: '✅ Anunciar Normal',
-      description: 'Seu anúncio será publicado normalmente.',
-      enabled: true,
-    },
-    {
-      value: 'priority',
-      label: '🚀 Anunciar com Prioridade',
-      description: 'Seu anúncio terá destaque e prioridade nas listagens.',
-      enabled: true,
-    },
-    {
-      value: 'professional',
-      label: '🔒 Anunciar com Profissional',
-      description: 'Disponível em breve. Recurso premium para anunciantes profissionais.',
-      enabled: false,
-    },
-  ];
-
   // Function to handle edit mode
   const handleEditMode = async (adId: string) => {
     
@@ -97,9 +78,13 @@ export default function NewAd() {
         setPrice(data.preco);
         setDescription(data.descricao || '');
         setImageUrls(data.imagens || []);
-        setUserWhatsapp((data.detalhes as AdDetails)?.whatsappLink || '');
-        setPublicLink('');
-        setSelectedAdType((data.detalhes as AdDetails)?.adType || 'normal');
+        
+        // Handle detalhes object safely with type casting
+        const details = data.detalhes as AdDetails | null;
+        setUserWhatsapp(details?.whatsappLink || '');
+        setPublicLink(details?.publicLink || '');
+        setSelectedAdType(details?.adType || 'normal');
+        
         setBudget(data.orcamento || '');
         setVideoUrl(data.video_url || '');
         setVideoAd(data.video_do_anuncio || '');
@@ -153,11 +138,11 @@ export default function NewAd() {
         return;
       }
       
-      // Prepare the ad data
+      // Prepare the ad data - create as basic object first
       const adDetails: AdDetails = {
         whatsappLink: userWhatsapp,
         publicLink: publicLink,
-        adType: selectedAdType as 'normal' | 'priority' | 'professional',
+        adType: selectedAdType,
       };
       
       if (editMode && adId) {
@@ -170,7 +155,7 @@ export default function NewAd() {
             descricao: description,
             imagens: imageUrls,
             orcamento: parseFloat(budget.toString() || '0'),
-            detalhes: adDetails,
+            detalhes: adDetails as Json, // Cast to Json type
             video_url: videoUrl,
             video_do_anuncio: videoAd,
             status: 'ativo',
@@ -193,26 +178,24 @@ export default function NewAd() {
         // Create new ad
         const newSlug = await generateSlug(title);
         
-        const newAd = {
-          titulo: title,
-          preco: parseFloat(price.toString()),
-          descricao: description,
-          imagens: imageUrls,
-          user_id: user.id,
-          orcamento: parseFloat(budget.toString() || '0'),
-          detalhes: adDetails,
-          video_url: videoUrl,
-          video_do_anuncio: videoAd,
-          status: 'ativo',
-          slug: newSlug,
-          localizacao: '',
-          visualizacoes: 0,
-          clics_whatsapp: 0,
-        };
-        
         const { error } = await supabase
           .from('anuncios')
-          .insert(newAd);
+          .insert({
+            titulo: title,
+            preco: parseFloat(price.toString()),
+            descricao: description,
+            imagens: imageUrls,
+            user_id: user.id,
+            orcamento: parseFloat(budget.toString() || '0'),
+            detalhes: adDetails as Json, // Cast to Json type
+            video_url: videoUrl,
+            video_do_anuncio: videoAd,
+            status: 'ativo',
+            slug: newSlug,
+            localizacao: '',
+            visualizacoes: 0,
+            clics_whatsapp: 0,
+          });
           
         if (error) throw error;
         
@@ -491,7 +474,13 @@ export default function NewAd() {
 
           <div className="space-y-2">
             <Label>Tipo de Anúncio</Label>
-            <Select onValueChange={setSelectedAdType}>
+            <Select 
+              value={selectedAdType} 
+              onValueChange={(value: string) => {
+                // Cast the string value to our union type
+                setSelectedAdType(value as 'normal' | 'priority' | 'professional');
+              }}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Selecione o tipo de anúncio" />
               </SelectTrigger>
