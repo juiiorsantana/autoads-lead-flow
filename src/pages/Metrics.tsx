@@ -167,6 +167,9 @@ export default function Metrics() {
       
       setUploadSuccess(true);
       setPageIndex(0); // Return to metrics overview
+      
+      // Fixed: Changed setLoading to setIsLoading
+      setIsLoading(false);
     } catch (error: any) {
       console.error("Error saving data:", error);
       toast({
@@ -174,6 +177,9 @@ export default function Metrics() {
         description: error.message || "Ocorreu um erro ao salvar os dados.",
         variant: "destructive"
       });
+      
+      // Fixed: Changed setLoading to setIsLoading
+      setIsLoading(false);
     }
   };
 
