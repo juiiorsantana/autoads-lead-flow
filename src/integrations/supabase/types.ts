@@ -69,6 +69,57 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_metrics: {
+        Row: {
+          ad_name: string | null
+          ad_set_name: string | null
+          amount_spent: number | null
+          campaign_name: string | null
+          conversations: number | null
+          cpm: number | null
+          day: string | null
+          id: number
+          impressions: number | null
+          landing_page_views: number | null
+          leads: number | null
+          link_clicks: number | null
+          reach: number | null
+          user_id: string
+        }
+        Insert: {
+          ad_name?: string | null
+          ad_set_name?: string | null
+          amount_spent?: number | null
+          campaign_name?: string | null
+          conversations?: number | null
+          cpm?: number | null
+          day?: string | null
+          id?: never
+          impressions?: number | null
+          landing_page_views?: number | null
+          leads?: number | null
+          link_clicks?: number | null
+          reach?: number | null
+          user_id: string
+        }
+        Update: {
+          ad_name?: string | null
+          ad_set_name?: string | null
+          amount_spent?: number | null
+          campaign_name?: string | null
+          conversations?: number | null
+          cpm?: number | null
+          day?: string | null
+          id?: never
+          impressions?: number | null
+          landing_page_views?: number | null
+          leads?: number | null
+          link_clicks?: number | null
+          reach?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

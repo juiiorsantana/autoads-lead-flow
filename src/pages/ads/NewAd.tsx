@@ -1,11 +1,11 @@
 
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlusCircle, Trash2, Pencil, Upload, X } from "lucide-react";
+import { PlusCircle, Trash2, Pencil, Upload, X, Rocket, Lock, CheckCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface FormData {
   carName: string;
@@ -22,15 +24,23 @@ interface FormData {
   dailySpend: string;
   images: File[];
   videoUrl?: string;
+  adType: "normal" | "priority" | "professional";
 }
 
-export default function AdsList() {
+export default function NewAd() {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [ads, setAds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [currentAd, setCurrentAd] = useState<any>(null);
+  const [adTypeInfo, setAdTypeInfo] = useState({
+    description: "Anúncio padrão sem prioridade."
+  });
 
   const form = useForm<FormData>({
     defaultValues: {
@@ -41,18 +51,95 @@ export default function AdsList() {
       dailySpend: "",
       images: [],
       videoUrl: "",
+      adType: "normal",
     },
   });
 
   useEffect(() => {
+    if (id) {
+      setIsEditMode(true);
+      fetchAdDetails(id);
+      setIsModalOpen(true);
+    }
+    
     fetchAds();
-  }, []);
+  }, [id]);
+
+  useEffect(() => {
+    const adType = form.watch("adType");
+    updateAdTypeInfo(adType);
+  }, [form.watch("adType")]);
 
   useEffect(() => {
     return () => {
       imagePreviews.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [imagePreviews]);
+
+  const updateAdTypeInfo = (type: string) => {
+    switch(type) {
+      case "normal":
+        setAdTypeInfo({
+          description: "Anúncio padrão sem prioridade."
+        });
+        break;
+      case "priority":
+        setAdTypeInfo({
+          description: "Seu anúncio será exibido com prioridade nas listagens e buscas."
+        });
+        break;
+      case "professional":
+        setAdTypeInfo({
+          description: "Recurso premium disponível em breve. Inclui destaque especial e suporte prioritário."
+        });
+        break;
+      default:
+        setAdTypeInfo({
+          description: "Anúncio padrão sem prioridade."
+        });
+    }
+  };
+
+  async function fetchAdDetails(adId: string) {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("anuncios")
+        .select("*")
+        .eq("id", adId)
+        .single();
+
+      if (error) throw error;
+      
+      if (data) {
+        setCurrentAd(data);
+        
+        // Populate form with existing data
+        form.reset({
+          carName: data.titulo,
+          price: data.preco.toString(),
+          description: data.descricao || "",
+          whatsappLink: data.detalhes?.whatsappLink || "",
+          dailySpend: data.orcamento?.toString() || "",
+          videoUrl: data.video_url || "",
+          adType: data.detalhes?.adType || "normal",
+        });
+        
+        // Set image previews
+        if (data.imagens && data.imagens.length > 0) {
+          setImagePreviews(data.imagens);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching ad details:", error);
+      toast({
+        title: "Erro ao carregar anúncio",
+        description: "Não foi possível carregar os detalhes do anúncio."
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function fetchAds() {
     setLoading(true);
@@ -80,6 +167,10 @@ export default function AdsList() {
       console.error(error);
     } else {
       setAds((prev) => prev.filter((ad) => ad.id !== adId));
+      toast({
+        title: "Anúncio excluído",
+        description: "O anúncio foi excluído com sucesso."
+      });
     }
   }
 
@@ -95,12 +186,32 @@ export default function AdsList() {
   };
 
   const removeImage = (index: number) => {
+    // For edit mode, we need to handle removing images differently
+    if (isEditMode && index < (currentAd?.imagens?.length || 0)) {
+      // Just remove from previews, but track which ones to delete on save
+      const newPreviews = [...imagePreviews];
+      newPreviews.splice(index, 1);
+      setImagePreviews(newPreviews);
+      return;
+    }
+    
+    // For new images (or create mode)
     const newFiles = [...imageFiles];
     const newPreviews = [...imagePreviews];
 
-    URL.revokeObjectURL(newPreviews[index]);
+    if (index < newPreviews.length) {
+      URL.revokeObjectURL(newPreviews[index]);
+    }
 
-    newFiles.splice(index, 1);
+    // Adjust index for new files if we're in edit mode
+    const fileIndex = isEditMode 
+      ? index - (currentAd?.imagens?.length || 0) 
+      : index;
+      
+    if (fileIndex >= 0 && fileIndex < newFiles.length) {
+      newFiles.splice(fileIndex, 1);
+    }
+    
     newPreviews.splice(index, 1);
 
     setImageFiles(newFiles);
@@ -111,7 +222,7 @@ export default function AdsList() {
     setIsSubmitting(true);
 
     try {
-      if (imageFiles.length === 0) {
+      if (imagePreviews.length === 0) {
         toast({
           title: "Erro ao criar anúncio",
           description: "Adicione pelo menos uma imagem para o anúncio.",
@@ -120,68 +231,106 @@ export default function AdsList() {
         return;
       }
 
-      // Generate unique slug using the new format
-      const res = await supabase.rpc("generate_unique_slug", {
-        title: data.carName,
-      });
-
-      if (res.error) throw new Error(res.error.message);
-      const slug = res.data;
-
       const userId = (await supabase.auth.getUser()).data.user?.id;
       if (!userId) throw new Error("Usuário não autenticado");
 
-      const imageUrls: string[] = [];
-      for (const file of imageFiles) {
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${Date.now()}-${Math.random()
-          .toString(36)
-          .substring(2, 15)}.${fileExt}`;
-        const filePath = `${userId}/${slug}/${fileName}`;
+      let imageUrls: string[] = [];
+      
+      // If editing, start with existing images that weren't removed
+      if (isEditMode && currentAd?.imagens) {
+        // Only take the images that are still in the previews
+        const remainingOldImages = currentAd.imagens.filter(
+          (img: string) => imagePreviews.includes(img)
+        );
+        imageUrls = [...remainingOldImages];
+      }
 
-        const { error: uploadError } = await supabase.storage
-          .from("anuncios")
-          .upload(filePath, file);
+      // Upload new images
+      if (imageFiles.length > 0) {
+        // Generate unique slug for the ad
+        let slug = currentAd?.slug;
+        if (!isEditMode) {
+          const res = await supabase.rpc("generate_unique_slug", {
+            title: data.carName,
+          });
+          
+          if (res.error) throw new Error(res.error.message);
+          slug = res.data;
+        }
 
-        if (uploadError)
-          throw new Error(`Erro ao fazer upload: ${uploadError.message}`);
+        for (const file of imageFiles) {
+          const fileExt = file.name.split(".").pop();
+          const fileName = `${Date.now()}-${Math.random()
+            .toString(36)
+            .substring(2, 15)}.${fileExt}`;
+          
+          // Use the existing slug or the new one
+          const filePath = `${userId}/${slug}/${fileName}`;
 
-        const { data: urlData } = supabase.storage
-          .from("anuncios")
-          .getPublicUrl(filePath);
+          const { error: uploadError } = await supabase.storage
+            .from("anuncios")
+            .upload(filePath, file);
 
-        imageUrls.push(urlData.publicUrl);
+          if (uploadError)
+            throw new Error(`Erro ao fazer upload: ${uploadError.message}`);
+
+          const { data: urlData } = supabase.storage
+            .from("anuncios")
+            .getPublicUrl(filePath);
+
+          imageUrls.push(urlData.publicUrl);
+        }
       }
 
       // Prepare the public link
-      const publicLink = `https://autolink.app/${slug}`;
+      const publicLink = isEditMode && currentAd.slug 
+        ? `https://autolink.app/${currentAd.slug}`
+        : `https://autolink.app/${slug}`;
 
-      // Insert the ad with the new fields
-      const { error: insertError } = await supabase.from("anuncios").insert({
+      const adData = {
         titulo: data.carName,
         preco: parseFloat(data.price),
         descricao: data.description,
         imagens: imageUrls,
-        slug: slug,
-        localizacao: "Brasil",
         user_id: userId,
         orcamento: parseFloat(data.dailySpend),
         detalhes: { 
           whatsappLink: data.whatsappLink,
-          publicLink: publicLink
+          publicLink: publicLink,
+          adType: data.adType
         },
         video_url: data.videoUrl || null,
         video_do_anuncio: data.videoUrl || null,
         status: "em-analise",
-        visualizacoes: 0,
-        clics_whatsapp: 0
-      });
+      };
 
-      if (insertError) throw new Error(insertError.message);
+      let result;
+      
+      if (isEditMode) {
+        // Update existing ad
+        result = await supabase
+          .from("anuncios")
+          .update(adData)
+          .eq("id", id);
+      } else {
+        // Create new ad
+        adData.slug = slug;
+        adData.localizacao = "Brasil";
+        adData.visualizacoes = 0;
+        adData.clics_whatsapp = 0;
+        
+        result = await supabase
+          .from("anuncios")
+          .insert(adData);
+      }
+
+      if (result.error) throw new Error(result.error.message);
 
       toast({
-        title: "Anúncio criado com sucesso",
-        description: "Seu anúncio foi publicado com sucesso!",
+        title: isEditMode ? "Anúncio atualizado" : "Anúncio criado",
+        description: isEditMode 
+          ? "Seu anúncio foi atualizado com sucesso!" 
+          : "Seu anúncio foi publicado com sucesso!",
       });
 
       setIsModalOpen(false);
@@ -189,14 +338,18 @@ export default function AdsList() {
       setImagePreviews([]);
       form.reset();
       fetchAds();
+      
+      if (isEditMode) {
+        navigate("/anuncios");
+      }
     } catch (error) {
-      console.error("Erro ao criar anúncio:", error);
+      console.error("Erro ao processar anúncio:", error);
       toast({
-        title: "Erro ao criar anúncio",
+        title: `Erro ao ${isEditMode ? 'atualizar' : 'criar'} anúncio`,
         description:
           error instanceof Error
             ? error.message
-            : "Ocorreu um erro ao criar o anúncio.",
+            : `Ocorreu um erro ao ${isEditMode ? 'atualizar' : 'criar'} o anúncio.`,
       });
     } finally {
       setIsSubmitting(false);
@@ -207,7 +360,13 @@ export default function AdsList() {
     <div className="space-y-6 animate-fade-in">
       <Header title="Meus Anúncios">
         <Button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setIsEditMode(false);
+            setIsModalOpen(true);
+            form.reset();
+            setImageFiles([]);
+            setImagePreviews([]);
+          }}
           className="flex items-center gap-2"
         >
           <PlusCircle className="h-4 w-4" />
@@ -239,7 +398,9 @@ export default function AdsList() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Criar Novo Anúncio</h2>
+              <h2 className="text-xl font-bold">
+                {isEditMode ? "Editar Anúncio" : "Criar Novo Anúncio"}
+              </h2>
               <Button
                 variant="ghost"
                 onClick={() => {
@@ -247,6 +408,9 @@ export default function AdsList() {
                   setImageFiles([]);
                   setImagePreviews([]);
                   form.reset();
+                  if (isEditMode) {
+                    navigate("/anuncios");
+                  }
                 }}
               >
                 <X className="h-5 w-5" />
@@ -254,6 +418,62 @@ export default function AdsList() {
             </div>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="adType"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel>Tipo de Anúncio</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-gray-200 hover:bg-gray-50">
+                            <RadioGroupItem value="normal" id="normal" />
+                            <div className="flex-1">
+                              <Label htmlFor="normal" className="flex items-center text-base font-medium">
+                                <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
+                                Anunciar Normal
+                              </Label>
+                              <p className="text-sm text-gray-500 ml-7">
+                                Visibilidade padrão no site.
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-gray-200 hover:bg-gray-50">
+                            <RadioGroupItem value="priority" id="priority" />
+                            <div className="flex-1">
+                              <Label htmlFor="priority" className="flex items-center text-base font-medium">
+                                <Rocket className="h-5 w-5 mr-2 text-blue-500" />
+                                Anunciar com Prioridade
+                              </Label>
+                              <p className="text-sm text-gray-500 ml-7">
+                                Seu anúncio ficará em destaque nas buscas.
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-gray-200 bg-gray-50 opacity-75">
+                            <RadioGroupItem value="professional" id="professional" disabled />
+                            <div className="flex-1">
+                              <Label htmlFor="professional" className="flex items-center text-base font-medium">
+                                <Lock className="h-5 w-5 mr-2 text-gray-500" />
+                                Anunciar com Profissional <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded ml-2">Em breve</span>
+                              </Label>
+                              <p className="text-sm text-gray-500 ml-7">
+                                Recurso premium disponível em breve.
+                              </p>
+                            </div>
+                          </div>
+                        </RadioGroup>
+                      </FormControl>
+                      <p className="text-sm text-gray-500 italic">{adTypeInfo.description}</p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="carName"
@@ -301,9 +521,9 @@ export default function AdsList() {
                   name="whatsappLink"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Link do WhatsApp</FormLabel>
+                      <FormLabel>Número do WhatsApp</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: 5511999999999" {...field} />
+                        <Input placeholder="Ex: 5511999999999 (apenas números)" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -388,12 +608,23 @@ export default function AdsList() {
                       setImageFiles([]);
                       setImagePreviews([]);
                       form.reset();
+                      if (isEditMode) {
+                        navigate("/anuncios");
+                      }
                     }}
+                    disabled={isSubmitting}
                   >
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Criando anúncio..." : "Criar anúncio"}
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {isEditMode ? "Atualizando..." : "Criando..."}
+                      </>
+                    ) : (
+                      isEditMode ? "Atualizar anúncio" : "Criar anúncio"
+                    )}
                   </Button>
                 </div>
               </form>
@@ -407,7 +638,7 @@ export default function AdsList() {
 
 function filterAdsByStatus(ads: any[], status: string) {
   if (status === "todos") return ads;
-  if (status === "em-analise") return ads.filter((ad) => ad.status === "em análise");
+  if (status === "em-analise") return ads.filter((ad) => ad.status === "em-analise");
   return ads.filter((ad) => ad.status === status);
 }
 
@@ -420,6 +651,12 @@ function AdsListGrid({
   onDelete: (id: string) => void; 
   setIsModalOpen: (isOpen: boolean) => void;
 }) {
+  const navigate = useNavigate();
+  
+  const handleEdit = (adId: string) => {
+    navigate(`/anuncios/editar/${adId}`);
+  };
+  
   if (ads.length === 0) {
     return <EmptyState setIsModalOpen={setIsModalOpen} />;
   }
@@ -444,12 +681,15 @@ function AdsListGrid({
             <p className="text-xs text-gray-500">Status: <strong>{ad.status}</strong></p>
 
             <div className="flex gap-2 mt-3">
-              <Link to={`/anuncios/editar/${ad.id}`} className="w-full">
-                <Button variant="outline" size="sm" className="w-full">
-                  <Pencil className="w-4 h-4 mr-2" />
-                  Editar
-                </Button>
-              </Link>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full"
+                onClick={() => handleEdit(ad.id)}
+              >
+                <Pencil className="w-4 h-4 mr-2" />
+                Editar
+              </Button>
 
               <Button
                 variant="destructive"
