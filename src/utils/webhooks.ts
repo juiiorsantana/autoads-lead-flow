@@ -8,6 +8,8 @@
  */
 export const notifyAdCreation = async (adData: any, userData: any) => {
   try {
+    console.log('Sending webhook notification for new ad:', adData);
+    
     const response = await fetch(
       'https://hook.us2.make.com/xyn69qyh2y57mep7njyi33ah4ka5ywry',
       {
@@ -16,9 +18,13 @@ export const notifyAdCreation = async (adData: any, userData: any) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          modelo: adData.titulo || '',
-          ano: adData.detalhes?.ano || new Date().getFullYear().toString(),
+          titulo: adData.titulo || '',
           preco: adData.preco || 0,
+          orcamento: adData.orcamento || 0,
+          detalhes: adData.detalhes || {},
+          // Add additional fields for backward compatibility
+          modelo: adData.titulo || '', // Use titulo as modelo for backwards compatibility
+          ano: adData.detalhes?.ano || new Date().getFullYear().toString(),
           vendedor: userData.user_metadata?.full_name || userData.email || 'Usuário',
         }),
       }
@@ -26,9 +32,11 @@ export const notifyAdCreation = async (adData: any, userData: any) => {
 
     if (!response.ok) {
       console.error('Failed to send webhook notification:', await response.text());
+      return false;
     }
     
-    return response.ok;
+    console.log('Webhook notification sent successfully');
+    return true;
   } catch (error) {
     console.error('Error sending webhook notification:', error);
     return false;

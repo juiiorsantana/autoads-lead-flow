@@ -215,9 +215,12 @@ export default function NewAd() {
         if (error) throw error;
         
         if (data && data[0]) {
+          console.log('Calling webhook for newly created ad');
           notifyAdCreation(data[0], user).then(success => {
             if (!success) {
               console.warn('Failed to notify external systems about new ad');
+            } else {
+              console.log('Successfully notified external systems about new ad');
             }
           });
         }
