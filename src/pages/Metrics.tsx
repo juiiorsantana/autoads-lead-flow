@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 
@@ -108,7 +109,7 @@ export default function Metrics() {
           processAndSaveData(formattedData);
         }
       } catch (error) {
-        console.error("Error parsing CSV:", Error);
+        console.error("Error parsing CSV:", error);
         toast({
           title: "Erro ao processar arquivo",
           description: "O formato do arquivo não é compatível.",
@@ -118,7 +119,7 @@ export default function Metrics() {
       }
     };
 
-    reader.onerror = (Error) => {
+    reader.onerror = (error) => {
       setIsLoading(false);
       toast({
         title: "Erro ao ler arquivo",
@@ -178,7 +179,7 @@ export default function Metrics() {
 
   useEffect(() => {
     const fetchCampaignData = async () => {
-      setLoading(true);
+      setIsLoading(true);
       try {
         const { data: { user } } = await supabase.auth.getUser();
         
@@ -199,13 +200,11 @@ export default function Metrics() {
           variant: "destructive"
         });
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
     
-    fetchCampaignData().catch(error => {
-      console.error("Unhandled promise rejection:", error);
-    });
+    fetchCampaignData();
   }, []);
 
   return (

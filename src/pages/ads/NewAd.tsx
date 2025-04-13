@@ -26,6 +26,13 @@ interface FormData {
   adType: "normal" | "priority" | "professional";
 }
 
+interface AdDetails {
+  whatsappLink?: string;
+  publicLink?: string;
+  adType?: "normal" | "priority" | "professional";
+  [key: string]: any;
+}
+
 export default function NewAd() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -99,6 +106,16 @@ export default function NewAd() {
     }
   };
 
+  const getDetailsValue = (details: any, key: string, defaultValue: any = null) => {
+    if (!details) return defaultValue;
+    
+    if (typeof details === 'object' && !Array.isArray(details)) {
+      return details[key] ?? defaultValue;
+    }
+    
+    return defaultValue;
+  };
+
   async function fetchAdDetails(adId: string) {
     setLoading(true);
     try {
@@ -119,10 +136,10 @@ export default function NewAd() {
           carName: data.titulo,
           price: data.preco.toString(),
           description: data.descricao || "",
-          whatsappLink: detailsObj?.whatsappLink || "",
+          whatsappLink: getDetailsValue(data.detalhes, 'whatsappLink', ''),
           dailySpend: data.orcamento?.toString() || "",
           videoUrl: data.video_url || "",
-          adType: (detailsObj?.adType as "normal" | "priority" | "professional") || "normal",
+          adType: getDetailsValue(data.detalhes, 'adType', 'normal') as "normal" | "priority" | "professional",
         });
         
         if (data.imagens && data.imagens.length > 0) {
@@ -237,19 +254,22 @@ export default function NewAd() {
           (img: string) => imagePreviews.includes(img)
         );
         imageUrls = [...remainingOldImages];
-        adSlug = currentAd.slug;
+        
+        if (currentAd?.slug) {
+          adSlug = currentAd.slug;
+        }
+      }
+
+      if (!adSlug) {
+        const res = await supabase.rpc("generate_unique_slug", {
+          title: data.carName,
+        });
+        
+        if (res.error) throw new Error(res.error.message);
+        adSlug = res.data;
       }
 
       if (imageFiles.length > 0) {
-        if (!isEditMode) {
-          const res = await supabase.rpc("generate_unique_slug", {
-            title: data.carName,
-          });
-          
-          if (res.error) throw new Error(res.error.message);
-          adSlug = res.data;
-        }
-
         for (const file of imageFiles) {
           const fileExt = file.name.split(".").pop();
           const fileName = `${Date.now()}-${Math.random()
@@ -297,7 +317,10 @@ export default function NewAd() {
       if (isEditMode) {
         result = await supabase
           .from("anuncios")
-          .update(adData)
+          .update({
+            ...adData,
+            slug: adSlug
+          })
           .eq("id", id);
       } else {
         const newAdData = {

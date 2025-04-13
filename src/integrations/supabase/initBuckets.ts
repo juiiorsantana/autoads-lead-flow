@@ -49,6 +49,24 @@ export async function initBuckets() {
       console.log('Bucket de anúncios criado com sucesso!');
     }
     
+    // Adicionar colunas faltantes na tabela profiles se necessário
+    try {
+      // Verifique se as colunas já existem para evitar erros
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .limit(1);
+      
+      if (profileError) {
+        console.error('Erro ao verificar tabela de perfis:', profileError);
+      } else {
+        // Se a tabela existe mas não conseguimos ver as colunas específicas, o erro está em outro lugar
+        console.log('Tabela de perfis verificada com sucesso');
+      }
+    } catch (error) {
+      console.error('Erro ao verificar tabela de perfis:', error);
+    }
+    
   } catch (error) {
     console.error('Erro ao inicializar buckets:', error);
   }

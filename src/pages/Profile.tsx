@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useRef } from "react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,20 @@ import {
   RadioGroup, 
   RadioGroupItem 
 } from "@/components/ui/radio-group";
+
+// Define the profile data structure to match what we expect from Supabase
+interface ProfileData {
+  id?: string;
+  full_name?: string;
+  business_name?: string;
+  email?: string;
+  phone?: string;
+  document_id?: string;
+  about?: string;
+  avatar_url?: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
@@ -65,15 +80,18 @@ export default function Profile() {
 
         // Check if profile exists
         if (profileData) {
+          // Safely cast the data to our expected type
+          const typedProfileData = profileData as ProfileData;
+          
           // Set profile data with type safety 
           setProfileData({
-            fullName: profileData.full_name || user.user_metadata?.full_name || "",
-            businessName: profileData.business_name || "",
+            fullName: typedProfileData.full_name || user.user_metadata?.full_name || "",
+            businessName: typedProfileData.business_name || "",
             email: user.email || "",
-            phone: profileData.phone || "",
-            documentId: profileData.document_id || "",
-            about: profileData.about || "",
-            avatarUrl: profileData.avatar_url || "",
+            phone: typedProfileData.phone || "",
+            documentId: typedProfileData.document_id || "",
+            about: typedProfileData.about || "",
+            avatarUrl: typedProfileData.avatar_url || "",
           });
         } else {
           // Create a basic profile if it doesn't exist

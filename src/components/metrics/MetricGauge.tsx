@@ -3,7 +3,7 @@ import React from 'react';
 
 interface MetricGaugeProps {
   title: string;
-  subtitle?: string; // Make subtitle optional
+  subtitle?: string;
   value: string;
   unit: string;
   min: string;
@@ -12,7 +12,7 @@ interface MetricGaugeProps {
 
 export function MetricGauge({
   title,
-  subtitle = "", // Add default empty string
+  subtitle = "",
   value,
   unit,
   min,
