@@ -1,5 +1,6 @@
+import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
 
-import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,9 +13,31 @@ import { MetricsOverview } from "@/components/metrics/MetricsOverview";
 import { MetricsDetails } from "@/components/metrics/MetricsDetails";
 
 export default function Metrics() {
-  const [csvData, setCsvData] = useState<CampaignData[]>([]);
+  const [csvData, setCsvData] = useState<CampaignData[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasFile, setHasFile] = useState(false);
+
+  const fetchMetrics = async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('campaign_metrics')
+      .select('*');
+
+    setIsLoading(false);
+    if (error) {
+      console.error("Error fetching metrics:", error);
+      toast({
+        title: "Erro ao carregar métricas",
+        description: "Ocorreu um erro ao buscar os dados do banco de dados.",
+        variant: "destructive",
+      });
+    } else {
+      setCsvData(data as CampaignData[]);
+      setHasFile(data && data.length > 0);
+    }
+  };
+
+  useEffect(() => { fetchMetrics(); }, []);
 
   const handleFileUpload = (file: File) => {
     if (!file) return;
@@ -26,8 +49,13 @@ export default function Metrics() {
       try {
         const text = e.target?.result as string;
         const rows = text.split('\n');
-        const headers = rows[0].split(',');
-        
+
+        // Detect delimiter (comma or semicolon)
+        const firstLine = rows[0];
+        const delimiter = firstLine.includes(',') ? ',' : ';';
+
+        const headers = firstLine.split(delimiter);
+
         const headerMap: Record<string, string> = {
           'Campaign Name': 'campaign_name',
           'Ad Set Name': 'ad_set_name',
@@ -45,44 +73,85 @@ export default function Metrics() {
 
         const parsedData: CampaignData[] = [];
         for (let i = 1; i < rows.length; i++) {
-          if (!rows[i].trim()) continue;
-          
-          const values = rows[i].split(',');
-          const rowData: any = {};
-          
-          headers.forEach((header, index) => {
-            const key = headerMap[header.trim()] || header.trim();
-            let value: any = values[index]?.trim() || '';
-            
-            if (['amount_spent', 'reach', 'impressions', 'cpm', 'conversations', 'link_clicks', 'landing_page_views', 'leads'].includes(key)) {
-              value = parseFloat(value) || 0;
-            }
-            
-            rowData[key] = value;
-          });
-          
-          parsedData.push(rowData as CampaignData);
+            if (!rows[i].trim()) continue;
+
+            const values = rows[i].split(delimiter);
+            const rowData: any = {};
+
+            headers.forEach((header, index) => {
+                const key = headerMap[header.trim()] || header.trim();
+                let value: any = values[index]?.trim() || '';
+
+                if (['amount_spent', 'reach', 'impressions', 'cpm', 'conversations', 'link_clicks', 'landing_page_views', 'leads'].includes(key)) {
+                    value = parseFloat(value) || 0;
+                }
+
+                rowData[key] = value;
+            });
+
+            parsedData.push(rowData as CampaignData);
         }
 
-        setCsvData(parsedData);
-        setHasFile(true);
-        toast({
-          title: "Arquivo importado com sucesso",
-          description: `${parsedData.length} registros de campanhas carregados.`,
+        const formattedData = parsedData.map(item => {
+          const formattedItem: Record<string, any> = {};
+          for (const key in item) {
+            if (Object.prototype.hasOwnProperty.call(item, key)) {
+              formattedItem[key] = item[key];
+            }
+          }
+          return formattedItem;
         });
+
+        if (formattedData.length > 0) {
+          supabase
+            .from('campaign_metrics')
+            .insert(formattedData)
+            .then(({ data, error }) => {
+              if (error) {
+                console.error('Error inserting data:', Error);
+                toast({
+                  title: 'Erro ao salvar métricas',
+                  description:
+                    'Ocorreu um erro ao salvar os dados no banco de dados.',
+                  variant: 'destructive',
+                });
+              } else {
+                console.log('Data inserted successfully:', data);
+                setHasFile(true);
+                toast({
+                  title: 'Métricas salvas com sucesso',
+                  description:
+                    'Os dados das métricas foram salvos no banco de dados.',
+                });
+                toast({
+                  description:
+                    'Os dados das métricas foram salvos no banco de dados.',
+                });
+                fetchMetrics();
+              }
+            })
+            .catch((err) => {
+              console.error('Error during insertion:', err);
+              toast({
+                title: 'Erro ao salvar métricas',
+                description: 'Ocorreu um erro inesperado ao salvar os dados.',
+                variant: 'destructive',
+              });
+            })
+            .finally(() => setIsLoading(false));
+        }
       } catch (error) {
-        console.error("Error parsing CSV:", error);
+        console.error("Error parsing CSV:", Error);
         toast({
           title: "Erro ao processar arquivo",
           description: "O formato do arquivo não é compatível.",
           variant: "destructive",
-        });
+        }); 
+        setIsLoading(false); // Ensure setIsLoading(false) is called in catch
       }
-
-      setIsLoading(false);
     };
 
-    reader.onerror = () => {
+    reader.onerror = (Error) => {
       setIsLoading(false);
       toast({
         title: "Erro ao ler arquivo",
@@ -90,8 +159,10 @@ export default function Metrics() {
         variant: "destructive",
       });
     };
-
-    reader.readAsText(file);
+    
+    if (file) {
+      reader.readAsText(file);
+    }
   };
 
   return (
@@ -131,8 +202,8 @@ export default function Metrics() {
         </>
       ) : (
         <>
-          <MetricsOverview csvData={csvData} />
-          <MetricsDetails csvData={csvData} />
+          {csvData && <MetricsOverview csvData={csvData} />}
+          {csvData && <MetricsDetails csvData={csvData} />}
         </>
       )}
     </div>
