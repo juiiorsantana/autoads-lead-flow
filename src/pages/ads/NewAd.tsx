@@ -27,6 +27,28 @@ import {
 } from "@/components/ui/select"
 import { Json } from '@/integrations/supabase/types';
 
+// Define ad types
+const adTypes = [
+  {
+    value: 'normal' as const,
+    label: 'Normal',
+    description: 'Anúncio normal',
+    enabled: true
+  },
+  {
+    value: 'priority' as const,
+    label: 'Prioritário',
+    description: 'Anúncio com prioridade',
+    enabled: true
+  },
+  {
+    value: 'professional' as const,
+    label: 'Profissional',
+    description: 'Anúncio profissional',
+    enabled: true
+  }
+];
+
 interface AdType {
   value: 'normal' | 'priority' | 'professional';
   label: string;
@@ -34,7 +56,7 @@ interface AdType {
   enabled: boolean;
 }
 
-// Define AdDetails interface to match the JSON structure
+// Define AdDetails interface to match the JSON structure but make it compatible with Json type
 interface AdDetails {
   whatsappLink: string;
   publicLink: string;
@@ -79,11 +101,13 @@ export default function NewAd() {
         setDescription(data.descricao || '');
         setImageUrls(data.imagens || []);
         
-        // Handle detalhes object safely with type casting
-        const details = data.detalhes as AdDetails | null;
-        setUserWhatsapp(details?.whatsappLink || '');
-        setPublicLink(details?.publicLink || '');
-        setSelectedAdType(details?.adType || 'normal');
+        // Handle detalhes object safely with type casting and type checking
+        const details = data.detalhes as { [key: string]: any } | null;
+        if (details && typeof details === 'object') {
+          setUserWhatsapp(details.whatsappLink || '');
+          setPublicLink(details.publicLink || '');
+          setSelectedAdType((details.adType as 'normal' | 'priority' | 'professional') || 'normal');
+        }
         
         setBudget(data.orcamento || '');
         setVideoUrl(data.video_url || '');
@@ -139,7 +163,7 @@ export default function NewAd() {
       }
       
       // Prepare the ad data - create as basic object first
-      const adDetails: AdDetails = {
+      const adDetails: Record<string, string> = {
         whatsappLink: userWhatsapp,
         publicLink: publicLink,
         adType: selectedAdType,
@@ -252,7 +276,7 @@ export default function NewAd() {
             .getPublicUrl(filePath);
   
           // Simulate progress for each file
-          return new Promise((resolve) => {
+          return new Promise<string>((resolve) => {
             const interval = setInterval(() => {
               setUploadProgress((prevProgress) => {
                 const newProgress = Math.min(prevProgress + 20, 100); // Increment by 20%
@@ -267,7 +291,8 @@ export default function NewAd() {
         });
   
         const uploadedUrls = await Promise.all(uploadPromises);
-        setImageUrls((prevUrls) => [...prevUrls, ...uploadedUrls]);
+        // Fix: Explicitly type the return value to string[]
+        setImageUrls((prevUrls) => [...prevUrls, ...uploadedUrls] as string[]);
   
         toast({
           title: 'Imagens enviadas',
@@ -476,7 +501,7 @@ export default function NewAd() {
             <Label>Tipo de Anúncio</Label>
             <Select 
               value={selectedAdType} 
-              onValueChange={(value: string) => {
+              onValueChange={(value) => {
                 // Cast the string value to our union type
                 setSelectedAdType(value as 'normal' | 'priority' | 'professional');
               }}
