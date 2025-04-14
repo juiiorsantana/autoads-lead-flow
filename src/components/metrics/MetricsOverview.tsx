@@ -12,7 +12,7 @@ interface CampaignData {
   reach: number;
   impressions: number;
   cpm: number;
-  conversations: number;
+  messaging_conversations: number;
   link_clicks: number;
   landing_page_views: number;
   leads: number;
@@ -29,7 +29,7 @@ export function MetricsOverview({
   const totalInvestment = csvData.reduce((sum, item) => sum + (item.amount_spent || 0), 0);
   const totalReach = csvData.reduce((sum, item) => sum + (item.reach || 0), 0);
   const totalLandingPageViews = csvData.reduce((sum, item) => sum + (item.landing_page_views || 0), 0);
-  const totalConversations = csvData.reduce((sum, item) => sum + (item.conversations || 0), 0);
+  const totalMessagingConversations= csvData.reduce((sum, item) => sum + (item.messaging_conversations || 0), 0);
   const totalLinkClicks = csvData.reduce((sum, item) => sum + (item.link_clicks || 0), 0);
   const totalImpressions = csvData.reduce((sum, item) => sum + (item.impressions || 0), 0);
   const averageCTR = totalImpressions > 0 ? (totalLinkClicks / totalImpressions) * 100 : 0;
@@ -40,7 +40,7 @@ export function MetricsOverview({
         <MetricCard title="Investimento Total" value={`R$ ${totalInvestment.toFixed(2)}`} icon={<DollarSign className="h-5 w-5 text-blue-500" />} />
         <MetricCard title="Alcance" value={totalReach.toLocaleString()} icon={<Users className="h-5 w-5 text-purple-500" />} />
         <MetricCard title="Cliques" value={totalLandingPageViews.toLocaleString()} icon={<MousePointerClick className="h-5 w-5 text-green-500" />} />
-        <MetricCard title="Leads" value={totalConversations.toLocaleString()} icon={<ClipboardList className="h-5 w-5 text-yellow-500" />} />
+        <MetricCard title="Leads" value={totalMessagingConversations.toLocaleString()} icon={<ClipboardList className="h-5 w-5 text-yellow-500" />} />
         <MetricCard title="CTR" value={`${averageCTR.toFixed(2)}%`} icon={<AreaChart className="h-5 w-5 text-pink-500" />} />
         <MetricCard title="CPC" value={`R$ ${averageCPC.toFixed(2)}`} icon={<BarChart className="h-5 w-5 text-indigo-500" />} />
       </div>
@@ -60,7 +60,7 @@ export function MetricsOverview({
           <div className="space-y-2 mt-6">
             <FunnelStep label="Alcance" value={totalReach} color="bg-emerald-500" percent={100} />
             <FunnelStep label="Cliques" value={totalLandingPageViews} color="bg-blue-500" percent={totalReach > 0 ? totalLandingPageViews / totalReach * 100 : 0} />
-            <FunnelStep label="Leads" value={totalConversations} color="bg-yellow-500" percent={totalReach > 0 ? totalConversations / totalReach * 100 : 0} />
+            <FunnelStep label="Leads" value={totalMessagingConversations} color="bg-yellow-500" percent={totalReach > 0 ? totalMessagingConversations / totalReach * 100 : 0} />
             <div className="flex justify-between text-xs text-gray-500 mt-2">
               <span>Impressões</span>
               <span>Conversões</span>
