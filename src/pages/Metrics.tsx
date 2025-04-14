@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 
@@ -108,15 +107,9 @@ export default function Metrics() {
             parsedData.push(rowData as CampaignData);
         }
 
-        const formattedData = parsedData.map(item => {
-          const formattedItem: Record<string, any> = {};
-          for (const key in item) {
-            if (Object.prototype.hasOwnProperty.call(item, key)) {
-              formattedItem[key] = item[key];
-            }
-          }
-          return formattedItem;
-        });
+        const formattedData = parsedData.map(item => ({
+          ...item
+        }));
 
         if (formattedData.length > 0) {
           processAndSaveData(formattedData);
