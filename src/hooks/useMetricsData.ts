@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -71,6 +70,32 @@ export const useMetricsData = () => {
     }
   };
 
+  const clearMetrics = async () => {
+    setIsLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("Usuário não autenticado");
+      }
+
+      const { error } = await supabase
+        .from('campaign_metrics')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setCsvData(null);
+      setHasFile(false);
+    } catch (error: any) {
+      console.error("Error clearing metrics:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     csvData,
     isLoading,
@@ -79,6 +104,7 @@ export const useMetricsData = () => {
     processAndSaveData,
     setCsvData,
     setHasFile,
-    setIsLoading
+    setIsLoading,
+    clearMetrics
   };
 };

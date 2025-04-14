@@ -75,7 +75,6 @@ export type Database = {
           ad_set_name: string | null
           amount_spent: number | null
           campaign_name: string | null
-          conversations: number | null
           cpm: number | null
           day: string | null
           id: number
@@ -83,6 +82,7 @@ export type Database = {
           landing_page_views: number | null
           leads: number | null
           link_clicks: number | null
+          messaging_onversations: number | null
           reach: number | null
           user_id: string
         }
@@ -91,7 +91,6 @@ export type Database = {
           ad_set_name?: string | null
           amount_spent?: number | null
           campaign_name?: string | null
-          conversations?: number | null
           cpm?: number | null
           day?: string | null
           id?: never
@@ -99,6 +98,7 @@ export type Database = {
           landing_page_views?: number | null
           leads?: number | null
           link_clicks?: number | null
+          messaging_onversations?: number | null
           reach?: number | null
           user_id: string
         }
@@ -107,7 +107,6 @@ export type Database = {
           ad_set_name?: string | null
           amount_spent?: number | null
           campaign_name?: string | null
-          conversations?: number | null
           cpm?: number | null
           day?: string | null
           id?: never
@@ -115,6 +114,7 @@ export type Database = {
           landing_page_views?: number | null
           leads?: number | null
           link_clicks?: number | null
+          messaging_onversations?: number | null
           reach?: number | null
           user_id?: string
         }
