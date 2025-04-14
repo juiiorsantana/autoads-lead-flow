@@ -29,7 +29,7 @@ export const useFileHandler = (processAndSaveData: (data: Record<string, any>[])
           'Landing Page Views': 'landing_page_views',
           'Leads': 'leads',
           'Day': 'day',
-          // Portuguese headers - no duplicates with English headers
+          // Portuguese headers
           'Nome da campanha': 'campaign_name',
           'Nome do conjunto de anúncios': 'ad_set_name',
           'Nome do anúncio': 'ad_name',

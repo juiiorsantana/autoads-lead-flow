@@ -1,4 +1,5 @@
 
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,7 +10,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Trash2, Upload } from "lucide-react";
-import { useState } from "react";
 
 interface MetricsConfigDialogProps {
   children: React.ReactNode;
@@ -20,7 +20,7 @@ interface MetricsConfigDialogProps {
 
 export function MetricsConfigDialog({ children, onUpload, onRemoveData, isLoading }: MetricsConfigDialogProps) {
   const [open, setOpen] = useState(false);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

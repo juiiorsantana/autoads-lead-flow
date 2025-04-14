@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -23,7 +24,23 @@ export const useMetricsData = () => {
         variant: "destructive",
       });
     } else {
-      setCsvData(data as CampaignData[]);
+      // Map the database fields to our type, handling the field name discrepancy
+      const mappedData: CampaignData[] = data.map(item => ({
+        campaign_name: item.campaign_name || '',
+        ad_set_name: item.ad_set_name || '',
+        ad_name: item.ad_name || '',
+        amount_spent: item.amount_spent || 0,
+        reach: item.reach || 0,
+        impressions: item.impressions || 0,
+        cpm: item.cpm || 0,
+        conversations: item.messaging_onversations || 0, // Map from messaging_onversations to conversations
+        link_clicks: item.link_clicks || 0,
+        landing_page_views: item.landing_page_views || 0,
+        leads: item.leads || 0,
+        day: item.day || ''
+      }));
+      
+      setCsvData(mappedData);
       setHasFile(data && data.length > 0);
     }
   };
@@ -41,9 +58,12 @@ export const useMetricsData = () => {
         return;
       }
 
+      // Prepare data for the database, ensuring all required fields are present
       const dataWithUserId = data.map(item => ({
         ...item,
-        user_id: user.id
+        user_id: user.id,
+        // Make sure field name matches the database schema
+        messaging_onversations: item.conversations || 0
       }));
 
       const { error } = await supabase
