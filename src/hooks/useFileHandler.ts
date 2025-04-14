@@ -15,6 +15,7 @@ export const useFileHandler = (processAndSaveData: (data: Record<string, any>[])
         const delimiter = firstLine.includes(',') ? ',' : ';';
         const headers = firstLine.split(delimiter);
 
+        // Fixed the duplicate property keys by removing duplicates
         const headerMap: Record<string, string> = {
           'Campaign Name': 'campaign_name',
           'Ad Set Name': 'ad_set_name',
@@ -28,6 +29,7 @@ export const useFileHandler = (processAndSaveData: (data: Record<string, any>[])
           'Landing Page Views': 'landing_page_views',
           'Leads': 'leads',
           'Day': 'day',
+          // Portuguese headers - no duplicates with English headers
           'Nome da campanha': 'campaign_name',
           'Nome do conjunto de anúncios': 'ad_set_name',
           'Nome do anúncio': 'ad_name',
@@ -38,7 +40,6 @@ export const useFileHandler = (processAndSaveData: (data: Record<string, any>[])
           'Conversas de mensagem iniciadas': 'conversations',
           'Cliques no link': 'link_clicks',
           'Visualizações de página de destino': 'landing_page_views',
-          'Leads': 'leads',
           'Dia': 'day'
         };
 
