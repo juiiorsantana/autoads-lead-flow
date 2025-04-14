@@ -66,7 +66,7 @@ export const useAdForm = (adId?: string | null) => {
           imageUrls: data.imagens || [],
           userWhatsapp: detalhes?.whatsappLink || '',
           publicLink: detalhes?.publicLink || '',
-          selectedAdType: (detalhes?.adType as 'normal' | 'priority' | 'professional') || 'normal',
+          selectedAdType: (detalhes?.adType || 'normal') as 'normal' | 'priority' | 'professional',
           budget: data.orcamento || '',
           videoUrl: data.video_url || '',
           videoAd: data.video_do_anuncio || '',

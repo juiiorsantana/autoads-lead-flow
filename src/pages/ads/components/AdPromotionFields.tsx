@@ -1,3 +1,4 @@
+
 import {
     FormField,
     FormItem,
@@ -7,7 +8,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
-import { FormData } from "../NewAd"; // Assuming FormData is defined in NewAd.tsx
+import { FormData } from "../types/FormData"; 
 
 interface AdPromotionFieldsProps {
     form: UseFormReturn<FormData>;

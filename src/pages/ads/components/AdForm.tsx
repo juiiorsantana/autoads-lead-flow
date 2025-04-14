@@ -1,3 +1,4 @@
+
 import React from "react";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -6,8 +7,9 @@ import { AdContactFields } from "./AdContactFields";
 import { AdPromotionFields } from "./AdPromotionFields";
 import { AdImageUpload } from "./AdImageUpload";
 import { AdVideoUrlField } from "./AdVideoUrlField";
-import { FormData } from "@/pages/ads/NewAd";
+import { FormData } from "../types/FormData";
 import { cn } from "@/lib/utils";
+
 interface AdFormProps {
   form: UseFormReturn<FormData>;
   isSubmitting: boolean;

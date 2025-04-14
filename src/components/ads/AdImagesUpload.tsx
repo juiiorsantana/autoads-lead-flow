@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { v4 as uuidv4 } from 'uuid';
@@ -59,6 +60,7 @@ export const AdImagesUpload = ({
             let progress = 0;
             const interval = setInterval(() => {
               progress = Math.min(progress + 20, 100);
+              // Fix the TypeScript error by passing a number directly instead of a function
               setUploadProgress(progress);
               
               if (progress === 100) {

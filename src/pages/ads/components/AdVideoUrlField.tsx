@@ -1,8 +1,9 @@
+
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 
-import { FormData } from "../NewAd";
+import { FormData } from "../types/FormData";
 
 interface AdVideoUrlFieldProps  {
   form: UseFormReturn<FormData>;
