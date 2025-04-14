@@ -82,6 +82,7 @@ export function MetricsOverview({ csvData }: MetricsOverviewProps) {
               unit="R$"
               min="0"
               max="30"
+              subtitle="Custo por mil impressões"
             />
             <MetricGauge 
               title="CPC" 
@@ -89,6 +90,7 @@ export function MetricsOverview({ csvData }: MetricsOverviewProps) {
               unit="R$"
               min="0"
               max="5"
+              subtitle="Custo por clique"
             />
             <MetricGauge 
               title="CTR" 
@@ -96,6 +98,7 @@ export function MetricsOverview({ csvData }: MetricsOverviewProps) {
               unit="%"
               min="0"
               max="2"
+              subtitle="Taxa de cliques"
             />
           </div>
         </Card>

@@ -1,10 +1,13 @@
+
 import { Eye, MessageCircle } from "lucide-react";
 import { formatPrice } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
+
 interface AdDetailsProps {
   ad: any;
   onWhatsAppClick: () => void;
 }
+
 export function AdDetails({
   ad,
   onWhatsAppClick
@@ -30,7 +33,18 @@ export function AdDetails({
       </div>
 
       {/* Link Público */}
-      
+      {ad.detalhes?.publicLink && (
+        <div className="mt-2">
+          <a 
+            href={ad.detalhes.publicLink} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline text-sm"
+          >
+            Link público
+          </a>
+        </div>
+      )}
 
       {/* WhatsApp button */}
       <Button className="w-full py-6 text-lg gap-2 bg-green-500 hover:bg-green-600 rounded-full animate-pulse" onClick={onWhatsAppClick}>

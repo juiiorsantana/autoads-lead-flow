@@ -29,6 +29,11 @@ const App = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Initialize storage buckets
+    import('@/integrations/supabase/initBuckets').then(({ initBuckets }) => {
+      initBuckets();
+    });
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
