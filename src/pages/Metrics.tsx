@@ -1,6 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
-
 
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -71,7 +71,19 @@ export default function Metrics() {
           'Link Clicks': 'link_clicks',
           'Landing Page Views': 'landing_page_views',
           'Leads': 'leads',
-          'Day': 'day'
+          'Day': 'day',
+          'Nome da campanha': 'campaign_name',
+          'Nome do conjunto de anúncios': 'ad_set_name',
+          'Nome do anúncio': 'ad_name',
+          'Valor gasto (BRL)': 'amount_spent',
+          'Alcance': 'reach',
+          'Impressões': 'impressions',
+          'CPM (Custo por 1.000 impressões) (BRL)': 'cpm',
+          'Conversas de mensagem iniciadas': 'conversations',
+          'Cliques no link': 'link_clicks',
+          'Visualizações de página de destino': 'landing_page_views',
+          'Leads': 'leads',
+          'Dia': 'day'
         };
 
         const parsedData: CampaignData[] = [];
@@ -82,7 +94,8 @@ export default function Metrics() {
             const rowData: any = {};
 
             headers.forEach((header, index) => {
-                const key = headerMap[header.trim()] || header.trim();
+                const cleanHeader = header.trim();
+                const key = headerMap[cleanHeader] || cleanHeader;
                 let value: any = values[index]?.trim() || '';
 
                 if (['amount_spent', 'reach', 'impressions', 'cpm', 'conversations', 'link_clicks', 'landing_page_views', 'leads'].includes(key)) {
@@ -109,13 +122,13 @@ export default function Metrics() {
           processAndSaveData(formattedData);
         }
       } catch (error) {
-        console.error("Error parsing CSV:", Error);
+        console.error("Error parsing CSV:", error);
         toast({
           title: "Erro ao processar arquivo",
           description: "O formato do arquivo não é compatível.",
           variant: "destructive",
         }); 
-        setIsLoading(false); // Ensure setIsLoading(false) is called in catch
+        setIsLoading(false);
       }
     };
 
@@ -166,15 +179,15 @@ export default function Metrics() {
         });
         setUploadSuccess(true);
         setPageIndex(0); // Return to metrics overview
+        fetchMetrics(); // Refresh the data
      } catch (error: any) {
         console.error("Error saving data:", error);
          toast({
           title: "Erro ao salvar dados",
           description: error.message || "Ocorreu um erro ao salvar os dados.",
           variant: "destructive",
-        })
-
-      // Fixed: Changed setLoading to setIsLoading
+        });
+     } finally {
        setIsLoading(false);
      }
   };
@@ -193,6 +206,7 @@ export default function Metrics() {
             
           if (error) throw error;
            setCsvData(data || []);
+           setHasFile(data && data.length > 0);
         }
       } catch (error) {
         console.error("Error fetching campaign data:", error);
@@ -250,5 +264,6 @@ export default function Metrics() {
           {csvData && <MetricsDetails csvData={csvData} />}
         </>
       )}
-    </div>  );
+    </div>
+  );
 }

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { v4 as uuidv4 } from 'uuid';
@@ -57,15 +56,15 @@ export const AdImagesUpload = ({
             .getPublicUrl(filePath);
   
           return new Promise<string>((resolve) => {
+            let progress = 0;
             const interval = setInterval(() => {
-              setUploadProgress((prevProgress) => {
-                const newProgress = Math.min(prevProgress + 20, 100);
-                if (newProgress === 100) {
-                  clearInterval(interval);
-                  resolve(publicURL.data.publicUrl);
-                }
-                return newProgress;
-              });
+              progress = Math.min(progress + 20, 100);
+              setUploadProgress(progress);
+              
+              if (progress === 100) {
+                clearInterval(interval);
+                resolve(publicURL.data.publicUrl);
+              }
             }, 200);
           });
         });
