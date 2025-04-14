@@ -434,7 +434,7 @@ function AdsListGrid({
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {ads.map((ad) => (
         <Card
-          key={ad.id}
+          key={ad.id} 
           className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden"
         >
           {ad.imagens?.[0] && (
@@ -444,45 +444,45 @@ function AdsListGrid({
               className="w-full h-48 object-cover"
             />
           )}
-          <div className="p-4 space-y-2">
-            <h4 className="text-lg font-semibold text-gray-900">{ad.titulo}</h4>
-            <p className="text-md font-bold text-primary">{formatPrice(ad.preco)}</p>
-            <p className="text-sm text-gray-600 line-clamp-2">{ad.descricao}</p>
-            <p className="text-xs text-gray-500">Localização: <strong>{ad.localizacao || "Não informada"}</strong></p>
-            <p className="text-xs text-gray-500">Status: <strong>{ad.status}</strong></p>
-            <div className="flex items-center text-xs text-gray-500 space-x-4">
-              <div className="flex items-center">
-                <Eye className="h-4 w-4 mr-1" />
-                <span>{ad.visualizacoes?.[0]?.count || 0} visualizações</span>
+          <div className="relative">
+            <div className="p-4 space-y-2">
+              <h4 className="text-lg font-semibold text-gray-900">{ad.titulo}</h4>
+              <p className="text-md font-bold text-primary">{formatPrice(ad.preco)}</p>
+              <p className="text-sm text-gray-600 line-clamp-2">{ad.descricao}</p>
+              <p className="text-xs text-gray-500">Localização: <strong>{ad.localizacao || "Não informada"}</strong></p>
+              <p className="text-xs text-gray-500">Status: <strong>{ad.status}</strong></p>
+              <div className="flex items-center text-xs text-gray-500 space-x-4">
+                <div className="flex items-center">
+                  <Eye className="h-4 w-4 mr-1" />
+                  <span>{ad.visualizacoes?.[0]?.count || 0} visualizações</span>
+                </div>
+                <div className="flex items-center">
+                  <span>{ad.whatsapp_cliques?.[0]?.count || 0} contatos</span>
+                </div>
               </div>
-              <div className="flex items-center">
-                <span>{ad.whatsapp_cliques?.[0]?.count || 0} contatos</span>
-              </div>
-            </div>
 
-            <div className="flex gap-2 mt-3">
-              <Link to={`/anuncios/publico/${ad.slug}`} className="w-full">
-                <Button variant="outline" size="sm" className="w-full">
-                  <Eye className="w-4 h-4 mr-2" />
-                  Ver Anúncio Público
+              <div className="flex flex-wrap gap-2 mt-3 justify-end">
+                <Link to={`/anuncios/publico/${ad.slug}`} className="w-full">
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Eye className="w-4 h-4 mr-2" />
+                    Ver Anúncio Público
+                  </Button>
+                </Link>
+                <Button variant="destructive"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => onDelete(ad.id)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Excluir
                 </Button>
-              </Link>
-              <Link to={`/anuncios/editar/${ad.id}`} className="w-full">
-                <Button variant="outline" size="sm" className="w-full">
-                  <Pencil className="w-4 h-4 mr-2" />
-                  Editar
-                </Button>
-              </Link>
-              <Button
-                variant="destructive"
-                size="sm"
-                className="w-full"
-                onClick={() => onDelete(ad.id)}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Excluir
-              </Button>
+              </div>
             </div>
+            <Link to={`/anuncios/editar/${ad.id}`} className="absolute top-2 right-2">
+              <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-200">
+                <Pencil className="w-5 h-5 text-gray-500" />
+              </Button>
+            </Link>
           </div>
         </Card>
       ))}

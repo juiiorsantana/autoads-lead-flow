@@ -1,12 +1,16 @@
-
 interface FunnelStepProps {
   label: string;
-  value: number;
+  value?: number; // Torne value opcional
   color: string;
-  percent: number;
+  percent?: number; // Torne percent opcional
 }
 
-export function FunnelStep({ label, value, color, percent }: FunnelStepProps) {
+export function FunnelStep({
+  label,
+  value = 0, // Valor padrão 0
+  color,
+  percent = 0, // Valor padrão 0
+}: FunnelStepProps) {
   return (
     <div className="space-y-1">
       <div className="flex justify-between items-center">
