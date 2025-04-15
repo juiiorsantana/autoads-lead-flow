@@ -9,51 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      campaign_metrics: {
-        Row: {
-          campaign_name: string | null;
-          ad_set_name: string | null;
-          ad_name: string | null;
-          amount_spent: number | null;
-          reach: number | null;
-          impressions: number | null;
-          cpm: number | null;
-          conversations: number | null;
-          link_clicks: number | null;
-          landing_page_views: number | null;
-          leads: number | null;
-          day: string | null;
-        };
-        Insert: {
-          campaign_name?: string | null;
-          ad_set_name?: string | null;
-          ad_name?: string | null;
-          amount_spent?: number | null;
-          reach?: number | null;
-          impressions?: number | null;
-          cpm?: number | null;
-          conversations?: number | null;
-          link_clicks?: number | null;
-          landing_page_views?: number | null;
-          leads?: number | null;
-          day?: string | null;
-        };
-        Update: {
-          campaign_name?: string | null;
-          ad_set_name?: string | null;
-          ad_name?: string | null;
-          amount_spent?: number | null;
-          reach?: number | null;
-          impressions?: number | null;
-          cpm?: number | null;
-          conversations?: number | null;
-          link_clicks?: number | null;
-          landing_page_views?: number | null;
-          leads?: number | null;
-          day?: string | null;
-        };
-        Relationships: [];
-      },
       anuncios: {
         Row: {
           clics_whatsapp: number
@@ -120,7 +75,6 @@ export type Database = {
           ad_set_name: string | null
           amount_spent: number | null
           campaign_name: string | null
-          conversations: number | null
           cpm: number | null
           day: string | null
           id: number
@@ -128,6 +82,7 @@ export type Database = {
           landing_page_views: number | null
           leads: number | null
           link_clicks: number | null
+          messaging_conversations: number | null
           reach: number | null
           user_id: string
         }
@@ -136,7 +91,6 @@ export type Database = {
           ad_set_name?: string | null
           amount_spent?: number | null
           campaign_name?: string | null
-          conversations?: number | null
           cpm?: number | null
           day?: string | null
           id?: never
@@ -144,6 +98,7 @@ export type Database = {
           landing_page_views?: number | null
           leads?: number | null
           link_clicks?: number | null
+          messaging_conversations?: number | null
           reach?: number | null
           user_id: string
         }
@@ -152,7 +107,6 @@ export type Database = {
           ad_set_name?: string | null
           amount_spent?: number | null
           campaign_name?: string | null
-          conversations?: number | null
           cpm?: number | null
           day?: string | null
           id?: never
@@ -160,6 +114,7 @@ export type Database = {
           landing_page_views?: number | null
           leads?: number | null
           link_clicks?: number | null
+          messaging_conversations?: number | null
           reach?: number | null
           user_id?: string
         }
