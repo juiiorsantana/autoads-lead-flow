@@ -1,11 +1,11 @@
-
 import { Card } from "@/components/ui/card";
 import { DollarSign, Users, MousePointerClick, ClipboardList, AreaChart, BarChart } from "lucide-react";
 import { MetricCard } from "./MetricCard";
 import { MetricGauge } from "./MetricGauge";
 import { FunnelStep } from "./FunnelStep";
 import { CampaignData } from "@/types/metrics";
-
+import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { ChartContainer } from "@/components/ui/chart";
 interface MetricsOverviewProps {
   csvData: CampaignData[];
 }
@@ -17,6 +17,17 @@ export function MetricsOverview({ csvData }: MetricsOverviewProps) {
   const totalLeads = csvData.reduce((sum, item) => sum + (item.leads || 0), 0);
   const averageCTR = totalReach > 0 ? (totalClicks / totalReach) * 100 : 0;
   const averageCPC = totalClicks > 0 ? totalInvestment / totalClicks : 0;
+
+  const campaignLeads = csvData.reduce((acc: Record<string, number>, item) => {
+    const campaignName = item.campaign_name || 'Unknown Campaign';
+    acc[campaignName] = (acc[campaignName] || 0) + (item.leads || 0);
+    return acc;
+  }, {});
+
+  const processedData = Object.entries(campaignLeads).map(([campaign_name, leads]) => ({
+    campaign_name,
+    leads,
+  }));
 
   return (
     <>
@@ -66,16 +77,16 @@ export function MetricsOverview({ csvData }: MetricsOverviewProps) {
               title="CPM" 
               value={(csvData.reduce((sum, item) => sum + (item.cpm || 0), 0) / (csvData.length || 1)).toFixed(1)}
               unit="R$"
-              min="0"
-              max="30"
+              min="10"
+              max="100"
               subtitle="Custo por mil impressões"
             />
             <MetricGauge 
               title="CPC" 
               value={averageCPC.toFixed(2)}
               unit="R$"
-              min="0"
-              max="5"
+              min="1"
+              max="15"
               subtitle="Custo por clique"
             />
             <MetricGauge 
@@ -83,8 +94,9 @@ export function MetricsOverview({ csvData }: MetricsOverviewProps) {
               value={averageCTR.toFixed(1)}
               unit="%"
               min="0"
-              max="2"
+              max="15"
               subtitle="Taxa de cliques"
+              invertGradient
             />
           </div>
         </Card>
@@ -105,10 +117,17 @@ export function MetricsOverview({ csvData }: MetricsOverviewProps) {
               percent={totalReach > 0 ? (totalClicks / totalReach) * 100 : 0} 
             />
             <FunnelStep 
-              label="Leads" 
-              value={totalLeads} 
+              label="Conversa Iniciada" 
+              value={csvData.reduce((sum, item) => sum + (item.messaging_conversations || 0), 0)} 
               color="bg-yellow-500" 
+              percent={totalReach > 0 ? (csvData.reduce((sum, item) => sum + (item.messaging_conversations || 0), 0) / totalReach) * 100 : 0}
+            />
+            <FunnelStep 
+              label="CPA" 
+              value={totalLeads > 0 ? (totalInvestment / totalLeads).toFixed(2) : 0} 
+              color="bg-purple-500" 
               percent={totalReach > 0 ? (totalLeads / totalReach) * 100 : 0}
+              isCurrency
             />
             <div className="flex justify-between text-xs text-gray-500 mt-2">
               <span>Impressões</span>
@@ -119,8 +138,22 @@ export function MetricsOverview({ csvData }: MetricsOverviewProps) {
         
         <Card className="col-span-1 p-6 bg-white">
           <h3 className="text-lg font-medium mb-4">Campanhas por Leads</h3>
-          <div className="h-[250px] flex items-center justify-center">
-            <p className="text-gray-400 text-sm">Gráfico de campanhas por desempenho</p>
+          <div className="h-[250px]">
+            <ChartContainer 
+              config={{
+                leads: {
+                  label: "Leads",
+                  color: "#4caf50"
+                }
+              }}
+            >
+              <BarChart data={processedData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                <XAxis dataKey="campaign_name" angle={-45} textAnchor="end" interval={0} height={60} />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="leads" fill="#4caf50" />
+              </BarChart>
+            </ChartContainer>
           </div>
         </Card>
       </div>

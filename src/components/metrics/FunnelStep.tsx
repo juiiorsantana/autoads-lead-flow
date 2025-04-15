@@ -1,21 +1,26 @@
+
 interface FunnelStepProps {
   label: string;
-  value?: number; // Torne value opcional
+  value?: number;
   color: string;
-  percent?: number; // Torne percent opcional
+  percent?: number;
+  isCurrency?: boolean;
 }
 
 export function FunnelStep({
   label,
-  value = 0, // Valor padrão 0
+  value = 0,
   color,
-  percent = 0, // Valor padrão 0
+  percent = 0,
+  isCurrency = false,
 }: FunnelStepProps) {
   return (
     <div className="space-y-1">
       <div className="flex justify-between items-center">
         <span className="text-sm">{label}</span>
-        <span className="text-sm font-medium">{value.toLocaleString()}</span>
+        <span className="text-sm font-medium">
+          {isCurrency ? `R$ ${value}` : value.toLocaleString()}
+        </span>
       </div>
       <div className="h-10 w-full bg-gray-100 rounded-md relative overflow-hidden">
         <div
