@@ -1,5 +1,6 @@
 
 import { useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { useAdForm } from '@/hooks/useAdForm';
 import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/card';
@@ -11,9 +12,8 @@ import { AdContactDetails } from '@/components/ads/AdContactDetails';
 import { AdTypeSelection } from '@/components/ads/AdTypeSelection';
 
 export default function NewAd() {
-  const pathSegments = window.location.pathname.split('/');
-  const adIdFromUrl = pathSegments[pathSegments.length - 1];
-  const isEditMode = adIdFromUrl && pathSegments[pathSegments.length - 2] === 'editar';
+  const { id } = useParams<{ id: string }>();
+  const isEditMode = !!id;
   
   const {
     formData,
@@ -29,7 +29,7 @@ export default function NewAd() {
     setIsPublicLinkEnabled,
     imageUrls,
     setImageUrls,
-  } = useAdForm(isEditMode ? adIdFromUrl : null);
+  } = useAdForm(isEditMode ? id : null);
 
   return (
     <div className="animate-fade-in space-y-6 pb-8">
@@ -69,7 +69,7 @@ export default function NewAd() {
           
           <div className="flex justify-end">
             <Button type="submit" disabled={saving}>
-              {saving ? "Salvando..." : "Salvar Anúncio"}
+              {saving ? "Salvando..." : editMode ? "Atualizar Anúncio" : "Salvar Anúncio"}
             </Button>
           </div>
         </form>

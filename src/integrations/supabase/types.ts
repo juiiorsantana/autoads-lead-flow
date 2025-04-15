@@ -82,7 +82,7 @@ export type Database = {
           landing_page_views: number | null
           leads: number | null
           link_clicks: number | null
-          messaging_onversations: number | null
+          messaging_conversations: number | null
           reach: number | null
           user_id: string
         }
@@ -98,7 +98,7 @@ export type Database = {
           landing_page_views?: number | null
           leads?: number | null
           link_clicks?: number | null
-          messaging_onversations?: number | null
+          messaging_conversations?: number | null
           reach?: number | null
           user_id: string
         }
@@ -114,7 +114,7 @@ export type Database = {
           landing_page_views?: number | null
           leads?: number | null
           link_clicks?: number | null
-          messaging_onversations?: number | null
+          messaging_conversations?: number | null
           reach?: number | null
           user_id?: string
         }
