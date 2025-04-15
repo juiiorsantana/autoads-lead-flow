@@ -34,14 +34,31 @@ export default function NewAd() {
   } = useAdForm(isEditMode ? id : null);
 
   useEffect(() => {
-    // Display a toast message if we're in edit mode
+    if (!id && editMode) {
+      navigate('/anuncios');
+      return;
+    }
+    
     if (isEditMode) {
       toast({
         title: "Editando anúncio",
         description: "Você está editando um anúncio existente."
       });
     }
-  }, [isEditMode]);
+  }, [isEditMode, id, editMode, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (imageUrls.length === 0) {
+      toast({
+        title: "Erro",
+        description: "Adicione pelo menos uma imagem ao anúncio",
+        variant: "destructive"
+      });
+      return;
+    }
+    await handleSaveAd(e);
+  };
 
   return (
     <div className="animate-fade-in space-y-6 pb-8">
@@ -52,7 +69,7 @@ export default function NewAd() {
       </Header>
       
       <Card className="p-6">
-        <form onSubmit={handleSaveAd} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <AdBasicDetails 
             formData={formData} 
             updateFormField={updateFormField} 
@@ -75,16 +92,18 @@ export default function NewAd() {
             formData={formData}
             updateFormField={updateFormField}
             isPublicLinkEnabled={isPublicLinkEnabled}
-            setIsPublicLinkEnabled={setIsPublicLinkEnabled} />
+            setIsPublicLinkEnabled={setIsPublicLinkEnabled} 
+          />
 
           <Separator />
 
           <AdTypeSelection 
             selectedAdType={formData.selectedAdType}
-            updateFormField={updateFormField} />
+            updateFormField={updateFormField} 
+          />
           
           <div className="flex justify-end">
-            <Button type="submit" disabled={saving}>
+            <Button type="submit" disabled={saving || uploading}>
               {saving ? "Salvando..." : editMode ? "Atualizar Anúncio" : "Salvar Anúncio"}
             </Button>
           </div>
