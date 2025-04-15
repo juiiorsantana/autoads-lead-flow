@@ -1,6 +1,8 @@
 import React from 'react';
+
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+
 interface MetricGaugeProps {
   title: string;
   subtitle: string;
@@ -9,21 +11,25 @@ interface MetricGaugeProps {
   min: string;
   max: string;
 }
+
 export function MetricGauge({
   title,
   subtitle,
   value,
   unit,
   min,
-  max
+  max,
 }: MetricGaugeProps) {
   const valueNum = parseFloat(value);
   const minNum = parseFloat(min);
   const maxNum = parseFloat(max);
   const range = maxNum - minNum;
+
   const percentValue = range === 0 ? 0 : (valueNum - minNum) / range;
   const angle = -90 + percentValue * 180;
-  return <div className="w-60 p-4 bg-white rounded shadow space-y-3 px-[6px] mx-[20px]">
+
+  return (
+    <div className="w-60 p-4 bg-white rounded shadow space-y-3">
       {/* Título à esquerda */}
       <div className="text-left">
         <div className="text-sm font-bold text-gray-800">{title}</div>
@@ -49,17 +55,25 @@ export function MetricGauge({
               <stop offset="100%" stopColor="#d32f2f" />
             </linearGradient>
           </defs>
-          <path d="M10,100 A90,90 0 0,1 190,100" fill="none" stroke="url(#gaugeGradient)" strokeWidth="20" />
+          <path
+            d="M10,100 A90,90 0 0,1 190,100"
+            fill="none"
+            stroke="url(#gaugeGradient)"
+            strokeWidth="20"
+          />
         </svg>
 
         {/* Ponteiro */}
-        <div className="absolute" style={{
-        bottom: '24px',
-        left: '50%',
-        transform: `translateX(-50%) rotate(${angle}deg)`,
-        transformOrigin: 'bottom center',
-        transition: 'transform 0.5s ease-out'
-      }}>
+        <div
+          className="absolute"
+          style={{
+            bottom: '24px',
+            left: '50%',
+            transform: `translateX(-50%) rotate(${angle}deg)`,
+            transformOrigin: 'bottom center',
+            transition: 'transform 0.5s ease-out',
+          }}
+        >
           <svg width="8" height="50" viewBox="0 0 8 50">
             {/* Arrowhead */}
             <polygon points="4,0 8,8 0,8" fill="black" />
@@ -81,5 +95,6 @@ export function MetricGauge({
           <span>{unit}{max}</span>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 }

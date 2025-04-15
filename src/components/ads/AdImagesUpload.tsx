@@ -57,16 +57,15 @@ export const AdImagesUpload = ({
             .getPublicUrl(filePath);
   
           return new Promise<string>((resolve) => {
-            let progress = 0;
             const interval = setInterval(() => {
-              progress = Math.min(progress + 20, 100);
-              // Fix the TypeScript error by passing a number directly instead of a function
-              setUploadProgress(progress);
-              
-              if (progress === 100) {
-                clearInterval(interval);
-                resolve(publicURL.data.publicUrl);
-              }
+              setUploadProgress((prevProgress) => {
+                const newProgress = Math.min(prevProgress + 20, 100);
+                if (newProgress === 100) {
+                  clearInterval(interval);
+                  resolve(publicURL.data.publicUrl);
+                }
+                return newProgress;
+              });
             }, 200);
           });
         });

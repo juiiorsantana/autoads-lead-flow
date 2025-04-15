@@ -57,20 +57,18 @@ export const useAdForm = (adId?: string | null) => {
       if (error) throw error;
       
       if (data) {
-        const detalhes = data.detalhes as Record<string, any> | null;
-        
         setFormData({
           title: data.titulo,
           price: data.preco,
           description: data.descricao || '',
           imageUrls: data.imagens || [],
-          userWhatsapp: detalhes?.whatsappLink || '',
-          publicLink: detalhes?.publicLink || '',
-          selectedAdType: (detalhes?.adType || 'normal') as 'normal' | 'priority' | 'professional',
+          userWhatsapp: data.detalhes?.whatsappLink || '',
+          publicLink: data.detalhes?.publicLink || '',
+          selectedAdType: (data.detalhes?.adType as 'normal' | 'priority' | 'professional') || 'normal',
           budget: data.orcamento || '',
           videoUrl: data.video_url || '',
           videoAd: data.video_do_anuncio || '',
-          year: detalhes?.ano || new Date().getFullYear().toString(),
+          year: data.detalhes?.ano || new Date().getFullYear().toString(),
         });
         
         setEditMode(true);

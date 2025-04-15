@@ -79,8 +79,6 @@ const App = () => {
               <Route path="/metricas" element={<Metrics />} />
               <Route path="/anuncios" element={<AdsList />} />
               <Route path="/anuncios/novo" element={<NewAd />} />
-              {/* Nova rota para edição de anúncios */}
-              <Route path="/anuncios/editar/:id" element={<NewAd />} />
               <Route path="/mensagens" element={<Messages />} />
               <Route path="/perfil" element={<Profile />} />
             </Route>
