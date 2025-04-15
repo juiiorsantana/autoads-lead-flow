@@ -33,7 +33,7 @@ export const useMetricsData = () => {
         reach: item.reach || 0,
         impressions: item.impressions || 0,
         cpm: item.cpm || 0,
-        conversations: item.messaging_onversations || 0, // Map from messaging_onversations to conversations
+        conversations: item.messaging_conversations || 0, // Corrected field name
         link_clicks: item.link_clicks || 0,
         landing_page_views: item.landing_page_views || 0,
         leads: item.leads || 0,
@@ -63,7 +63,7 @@ export const useMetricsData = () => {
         ...item,
         user_id: user.id,
         // Make sure field name matches the database schema
-        messaging_onversations: item.conversations || 0
+        messaging_conversations: item.conversations || 0
       }));
 
       const { error } = await supabase

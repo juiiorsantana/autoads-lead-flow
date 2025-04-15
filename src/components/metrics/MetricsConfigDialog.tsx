@@ -47,6 +47,7 @@ export function MetricsConfigDialog({ children, onUpload, onRemoveData, isLoadin
             variant="outline"
             className="w-full justify-start"
             onClick={() => fileInputRef.current?.click()}
+            disabled={isLoading}
           >
             <Upload className="mr-2 h-4 w-4" />
             Importar Novos Dados
@@ -65,6 +66,7 @@ export function MetricsConfigDialog({ children, onUpload, onRemoveData, isLoadin
               onRemoveData();
               setOpen(false);
             }}
+            disabled={isLoading}
           >
             <Trash2 className="mr-2 h-4 w-4" />
             Remover Dados Atuais

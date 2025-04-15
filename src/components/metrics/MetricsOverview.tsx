@@ -1,27 +1,23 @@
+
 import { Card } from "@/components/ui/card";
 import { DollarSign, Users, MousePointerClick, ClipboardList, AreaChart, BarChart } from "lucide-react";
 import { MetricCard } from "./MetricCard";
 import { MetricGauge } from "./MetricGauge";
 import { FunnelStep } from "./FunnelStep";
-interface CampaignData {
-  campaign_name: string;
-  ad_set_name: string;
-  ad_name: string;
-  amount_spent: number;
-  reach: number;
-  impressions: number;
-  cpm: number;
-  conversations: number;
-  link_clicks: number;
-  landing_page_views: number;
-  leads: number;
-  day: string;
-}
+import { CampaignData } from "@/types/metrics";
+
 interface MetricsOverviewProps {
   csvData: CampaignData[];
+  onUpload?: (file: File) => void;
+  onRemoveData?: () => void;
+  isLoading?: boolean;
 }
+
 export function MetricsOverview({
-  csvData
+  csvData,
+  onUpload,
+  onRemoveData,
+  isLoading
 }: MetricsOverviewProps) {
   const totalInvestment = csvData.reduce((sum, item) => sum + (item.amount_spent || 0), 0);
   const totalReach = csvData.reduce((sum, item) => sum + (item.reach || 0), 0);
@@ -29,6 +25,7 @@ export function MetricsOverview({
   const totalLeads = csvData.reduce((sum, item) => sum + (item.leads || 0), 0);
   const averageCTR = totalReach > 0 ? totalClicks / totalReach * 100 : 0;
   const averageCPC = totalClicks > 0 ? totalInvestment / totalClicks : 0;
+  
   return <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <MetricCard title="Investimento Total" value={`R$ ${totalInvestment.toFixed(2)}`} icon={<DollarSign className="h-5 w-5 text-blue-500" />} />

@@ -1,7 +1,7 @@
 
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "lucide-react";
+import { Calendar, Settings } from "lucide-react";
 import { MetricsOverview } from "@/components/metrics/MetricsOverview";
 import { MetricsDetails } from "@/components/metrics/MetricsDetails";
 import { EmptyMetricsState } from "@/components/metrics/EmptyMetricsState";
@@ -9,6 +9,7 @@ import { useMetricsData } from "@/hooks/useMetricsData";
 import { useFileHandler } from "@/hooks/useFileHandler";
 import { useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
+import { MetricsConfigDialog } from "@/components/metrics/MetricsConfigDialog";
 
 export default function Metrics() {
   const {
@@ -51,6 +52,18 @@ export default function Metrics() {
             <Calendar className="h-4 w-4" />
             11 de abril de 2025
           </Button>
+          
+          {hasFile && (
+            <MetricsConfigDialog 
+              onUpload={handleFileUpload} 
+              onRemoveData={handleRemoveData}
+              isLoading={isLoading}
+            >
+              <Button variant="outline" size="icon">
+                <Settings className="h-4 w-4" />
+              </Button>
+            </MetricsConfigDialog>
+          )}
         </div>
       </Header>
 
