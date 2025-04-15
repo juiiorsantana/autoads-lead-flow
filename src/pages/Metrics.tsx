@@ -1,7 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
-
-
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -35,8 +33,23 @@ export default function Metrics() {
         variant: "destructive",
       });
     } else {
-      setCsvData(data as CampaignData[]);
-      setHasFile(data && data.length > 0);
+      const mappedData = data?.map(item => ({
+        campaign_name: item.campaign_name || '',
+        ad_set_name: item.ad_set_name || '',
+        ad_name: item.ad_name || '',
+        amount_spent: item.amount_spent || 0,
+        reach: item.reach || 0,
+        impressions: item.impressions || 0,
+        cpm: item.cpm || 0,
+        messaging_conversations: item.messaging_conversations || 0,
+        link_clicks: item.link_clicks || 0,
+        landing_page_views: item.landing_page_views || 0,
+        leads: item.leads || 0,
+        day: item.day || '',
+      })) as CampaignData[];
+      
+      setCsvData(mappedData);
+      setHasFile(mappedData && mappedData.length > 0);
     }
   };
 
@@ -115,7 +128,7 @@ export default function Metrics() {
           description: "O formato do arquivo não é compatível.",
           variant: "destructive",
         }); 
-        setIsLoading(false); // Ensure setIsLoading(false) is called in catch
+        setIsLoading(false);
       }
     };
 
@@ -135,7 +148,6 @@ export default function Metrics() {
 
   const processAndSaveData = async (data: Record<string, any>[]) => {
     try {
-      // Get the current user's ID
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -147,36 +159,34 @@ export default function Metrics() {
         return;
       }
 
-      // Add user_id to each record in the data array
       const dataWithUserId = data.map(item => ({
         ...item,
          user_id: user.id
        }));
 
-      // Now insert the data with user_id properly included
-       const { error } = await supabase
-           .from('campaign_metrics')
-           .insert(dataWithUserId);
+      const { error } = await supabase
+          .from('campaign_metrics')
+          .insert(dataWithUserId);
 
-       if (error) throw error;
+      if (error) throw error;
 
+      toast({
+        title: "Dados importados com sucesso",
+        description: `${data.length} registros foram salvos.`
+      });
+      setUploadSuccess(true);
+      setPageIndex(0);
+      fetchMetrics();
+    } catch (error: any) {
+      console.error("Error saving data:", error);
        toast({
-          title: "Dados importados com sucesso",
-          description: `${data.length} registros foram salvos.`
-        });
-        setUploadSuccess(true);
-        setPageIndex(0); // Return to metrics overview
-     } catch (error: any) {
-        console.error("Error saving data:", error);
-         toast({
-          title: "Erro ao salvar dados",
-          description: error.message || "Ocorreu um erro ao salvar os dados.",
-          variant: "destructive",
-        })
+        title: "Erro ao salvar dados",
+        description: error.message || "Ocorreu um erro ao salvar os dados.",
+        variant: "destructive",
+      });
 
-      // Fixed: Changed setLoading to setIsLoading
-       setIsLoading(false);
-     }
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -192,7 +202,24 @@ export default function Metrics() {
             .eq('user_id', user.id);
             
           if (error) throw error;
-           setCsvData(data || []);
+          
+          const mappedData = data?.map(item => ({
+            campaign_name: item.campaign_name || '',
+            ad_set_name: item.ad_set_name || '',
+            ad_name: item.ad_name || '',
+            amount_spent: item.amount_spent || 0,
+            reach: item.reach || 0,
+            impressions: item.impressions || 0,
+            cpm: item.cpm || 0,
+            messaging_conversations: item.messaging_conversations || 0,
+            link_clicks: item.link_clicks || 0,
+            landing_page_views: item.landing_page_views || 0,
+            leads: item.leads || 0,
+            day: item.day || '',
+          })) as CampaignData[];
+          
+          setCsvData(mappedData);
+          setHasFile(mappedData && mappedData.length > 0);
         }
       } catch (error) {
         console.error("Error fetching campaign data:", error);
@@ -250,5 +277,6 @@ export default function Metrics() {
           {csvData && <MetricsDetails csvData={csvData} />}
         </>
       )}
-    </div>  );
+    </div>  
+  );
 }

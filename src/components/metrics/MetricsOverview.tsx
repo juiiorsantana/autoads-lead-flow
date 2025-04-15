@@ -4,21 +4,7 @@ import { DollarSign, Users, MousePointerClick, ClipboardList, AreaChart, BarChar
 import { MetricCard } from "./MetricCard";
 import { MetricGauge } from "./MetricGauge";
 import { FunnelStep } from "./FunnelStep";
-
-interface CampaignData {
-  campaign_name: string;
-  ad_set_name: string;
-  ad_name: string;
-  amount_spent: number;
-  reach: number;
-  impressions: number;
-  cpm: number;
-  conversations: number;
-  link_clicks: number;
-  landing_page_views: number;
-  leads: number;
-  day: string;
-}
+import { CampaignData } from "@/types/metrics";
 
 interface MetricsOverviewProps {
   csvData: CampaignData[];

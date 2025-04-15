@@ -2,21 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-
-interface CampaignData {
-  campaign_name: string;
-  ad_set_name: string;
-  ad_name: string;
-  amount_spent: number;
-  reach: number;
-  impressions: number;
-  cpm: number;
-  conversations: number;
-  link_clicks: number;
-  landing_page_views: number;
-  leads: number;
-  day: string;
-}
+import { CampaignData } from "@/types/metrics";
 
 interface CampaignGroupProps {
   campaign: string;
@@ -30,7 +16,7 @@ export function CampaignGroup({ campaign, items }: CampaignGroupProps) {
   const totalSpent = items.reduce((sum, item) => sum + (item.amount_spent || 0), 0);
   const totalReach = items.reduce((sum, item) => sum + (item.reach || 0), 0);
   const totalImpressions = items.reduce((sum, item) => sum + (item.impressions || 0), 0);
-  const totalConversations = items.reduce((sum, item) => sum + (item.conversations || 0), 0);
+  const totalConversations = items.reduce((sum, item) => sum + (item.messaging_conversations || 0), 0);
   const totalClicks = items.reduce((sum, item) => sum + (item.link_clicks || 0), 0);
   const totalViews = items.reduce((sum, item) => sum + (item.landing_page_views || 0), 0);
   const totalLeads = items.reduce((sum, item) => sum + (item.leads || 0), 0);
@@ -73,7 +59,7 @@ export function CampaignGroup({ campaign, items }: CampaignGroupProps) {
           <td className="p-3 text-right">R$ {(item.amount_spent || 0).toFixed(2)}</td>
           <td className="p-3 text-right">{(item.reach || 0).toLocaleString()}</td>
           <td className="p-3 text-right">{(item.impressions || 0).toLocaleString()}</td>
-          <td className="p-3 text-right">{(item.conversations || 0).toLocaleString()}</td>
+          <td className="p-3 text-right">{(item.messaging_conversations || 0).toLocaleString()}</td>
           <td className="p-3 text-right">{(item.link_clicks || 0).toLocaleString()}</td>
           <td className="p-3 text-right">{(item.landing_page_views || 0).toLocaleString()}</td>
           <td className="p-3 text-right">{(item.leads || 0).toLocaleString()}</td>

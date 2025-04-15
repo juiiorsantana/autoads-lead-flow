@@ -57,15 +57,16 @@ export const AdImagesUpload = ({
             .getPublicUrl(filePath);
   
           return new Promise<string>((resolve) => {
+            // Use a local variable instead of directly updating state in the interval
+            let currentProgress = 0;
             const interval = setInterval(() => {
-              setUploadProgress((prevProgress) => {
-                const newProgress = Math.min(prevProgress + 20, 100);
-                if (newProgress === 100) {
-                  clearInterval(interval);
-                  resolve(publicURL.data.publicUrl);
-                }
-                return newProgress;
-              });
+              currentProgress = Math.min(currentProgress + 20, 100);
+              setUploadProgress(currentProgress);
+              
+              if (currentProgress === 100) {
+                clearInterval(interval);
+                resolve(publicURL.data.publicUrl);
+              }
             }, 200);
           });
         });

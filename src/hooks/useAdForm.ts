@@ -57,18 +57,20 @@ export const useAdForm = (adId?: string | null) => {
       if (error) throw error;
       
       if (data) {
+        const details = data.detalhes as Record<string, any> || {};
+        
         setFormData({
           title: data.titulo,
           price: data.preco,
           description: data.descricao || '',
           imageUrls: data.imagens || [],
-          userWhatsapp: data.detalhes?.whatsappLink || '',
-          publicLink: data.detalhes?.publicLink || '',
-          selectedAdType: (data.detalhes?.adType as 'normal' | 'priority' | 'professional') || 'normal',
+          userWhatsapp: details.whatsappLink || '',
+          publicLink: details.publicLink || '',
+          selectedAdType: (details.adType as 'normal' | 'priority' | 'professional') || 'normal',
           budget: data.orcamento || '',
           videoUrl: data.video_url || '',
           videoAd: data.video_do_anuncio || '',
-          year: data.detalhes?.ano || new Date().getFullYear().toString(),
+          year: details.ano || new Date().getFullYear().toString(),
         });
         
         setEditMode(true);
@@ -132,7 +134,7 @@ export const useAdForm = (adId?: string | null) => {
             descricao: formData.description,
             imagens: formData.imageUrls,
             orcamento: parseFloat(formData.budget.toString() || '0'),
-            detalhes: adDetails as Json,
+            detalhes: adDetails as unknown as Json,
             video_url: formData.videoUrl,
             video_do_anuncio: formData.videoAd,
             status: 'ativo',

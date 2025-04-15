@@ -10,6 +10,17 @@ import { AdImagesUpload } from '@/components/ads/AdImagesUpload';
 import { AdContactDetails } from '@/components/ads/AdContactDetails';
 import { AdTypeSelection } from '@/components/ads/AdTypeSelection';
 
+// Export the FormData type for use in other components
+export interface FormData {
+  carName: string;
+  price: string;
+  description: string;
+  whatsappLink: string;
+  dailySpend: string;
+  images: File[];
+  videoUrl?: string;
+}
+
 export default function NewAd() {
   const pathSegments = window.location.pathname.split('/');
   const adIdFromUrl = pathSegments[pathSegments.length - 1];

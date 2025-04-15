@@ -5,21 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, ArrowUpDown, Download } from "lucide-react";
 import { CampaignGroup } from "./CampaignGroup";
-
-interface CampaignData {
-  campaign_name: string;
-  ad_set_name: string;
-  ad_name: string;
-  amount_spent: number;
-  reach: number;
-  impressions: number;
-  cpm: number;
-  conversations: number;
-  link_clicks: number;
-  landing_page_views: number;
-  leads: number;
-  day: string;
-}
+import { CampaignData } from "@/types/metrics";
 
 interface MetricsDetailsProps {
   csvData: CampaignData[];

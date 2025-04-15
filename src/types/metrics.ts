@@ -7,7 +7,7 @@ export interface CampaignData {
   reach: number;
   impressions: number;
   cpm: number;
-  conversations: number;
+  messaging_conversations: number;
   link_clicks: number;
   landing_page_views: number;
   leads: number;
