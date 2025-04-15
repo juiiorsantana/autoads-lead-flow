@@ -1,6 +1,6 @@
 
 import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAdForm } from '@/hooks/useAdForm';
 import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/card';
@@ -10,9 +10,11 @@ import { AdBasicDetails } from '@/components/ads/AdBasicDetails';
 import { AdImagesUpload } from '@/components/ads/AdImagesUpload';
 import { AdContactDetails } from '@/components/ads/AdContactDetails';
 import { AdTypeSelection } from '@/components/ads/AdTypeSelection';
+import { toast } from '@/hooks/use-toast';
 
 export default function NewAd() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const isEditMode = !!id;
   
   const {
@@ -31,9 +33,23 @@ export default function NewAd() {
     setImageUrls,
   } = useAdForm(isEditMode ? id : null);
 
+  useEffect(() => {
+    // Display a toast message if we're in edit mode
+    if (isEditMode) {
+      toast({
+        title: "Editando anúncio",
+        description: "Você está editando um anúncio existente."
+      });
+    }
+  }, [isEditMode]);
+
   return (
     <div className="animate-fade-in space-y-6 pb-8">
-      <Header title={editMode ? "Editar Anúncio" : "Novo Anúncio"} />
+      <Header title={editMode ? "Editar Anúncio" : "Novo Anúncio"}>
+        <Button variant="outline" onClick={() => navigate('/anuncios')}>
+          Voltar para Anúncios
+        </Button>
+      </Header>
       
       <Card className="p-6">
         <form onSubmit={handleSaveAd} className="space-y-6">
