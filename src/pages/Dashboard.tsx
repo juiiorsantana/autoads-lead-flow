@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/layout/Header";
@@ -169,16 +168,36 @@ export default function Dashboard() {
   // Determinar o nome de usuário
   const getUserName = () => {
     try {
-      const { data: { user } } = supabase.auth.getUser();
-      return user?.user_metadata?.name || "usuário";
+      // Fixed: Don't try to access .data from the direct response of getUser()
+      const user = supabase.auth.getUser();
+      // Return a default name while waiting for the async result
+      return user.then(response => response.data.user?.user_metadata?.name || "usuário").catch(() => "usuário");
     } catch {
       return "usuário";
     }
   };
 
+  // Modified to handle the async nature of getUserName
+  const [userName, setUserName] = useState("usuário");
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.user_metadata?.name) {
+          setUserName(user.user_metadata.name);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar nome do usuário:", error);
+      }
+    };
+    
+    fetchUserName();
+  }, []);
+
   return (
     <div className="space-y-6 animate-fade-in">
-      <Header title={`Bem-vindo, ${getUserName()}!`} />
+      <Header title={`Bem-vindo, ${userName}!`} />
 
       <div className="text-gray-600">
         Aqui está o resumo dos seus anúncios de veículos

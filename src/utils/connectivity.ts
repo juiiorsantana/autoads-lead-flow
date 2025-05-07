@@ -2,6 +2,7 @@
 /**
  * Utility para verificar e gerenciar a conectividade da aplicação
  */
+import React from 'react';
 
 const ONLINE_CHECK_INTERVAL = 30000; // 30 segundos
 

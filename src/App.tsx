@@ -9,7 +9,7 @@ import { Layout } from "@/components/layout/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ExclamationTriangleIcon } from "lucide-react";
+import { AlertTriangle } from "lucide-react"; // Changed from ExclamationTriangleIcon to AlertTriangle
 import { Button } from "@/components/ui/button";
 
 // Pages
@@ -30,7 +30,7 @@ const queryClient = new QueryClient({
     queries: {
       retry: 1, // Limit retries
       staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 10 * 60 * 1000, // 10 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (updated from cacheTime to gcTime)
     },
   },
 });
@@ -106,7 +106,7 @@ const App = () => {
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           <Alert variant="destructive" className="mb-4">
-            <ExclamationTriangleIcon className="h-4 w-4" />
+            <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Problema de conexão</AlertTitle>
             <AlertDescription>{loadingError}</AlertDescription>
           </Alert>

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { supabase, checkSupabaseConnection } from "@/integrations/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ExclamationTriangleIcon } from "lucide-react";
+import { AlertTriangle } from "lucide-react"; // Changed from ExclamationTriangleIcon to AlertTriangle
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -98,7 +98,7 @@ export default function Login() {
         
         {connectionError && (
           <Alert variant="destructive" className="mb-4">
-            <ExclamationTriangleIcon className="h-4 w-4" />
+            <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Problema de conexão</AlertTitle>
             <AlertDescription>
               Não foi possível conectar ao servidor. Verifique sua conexão com a internet.
