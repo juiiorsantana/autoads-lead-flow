@@ -1,23 +1,43 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, checkSupabaseConnection } from "@/integrations/supabase/client";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ExclamationTriangleIcon } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [connectionError, setConnectionError] = useState(false);
   const navigate = useNavigate();
+  
+  // Check connection when component mounts
+  useEffect(() => {
+    const checkConnection = async () => {
+      const isConnected = await checkSupabaseConnection();
+      setConnectionError(!isConnected);
+    };
+    
+    checkConnection();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
+      // Verify connection before attempting login
+      const isConnected = await checkSupabaseConnection();
+      if (!isConnected) {
+        setConnectionError(true);
+        throw new Error("Não foi possível conectar ao servidor. Verifique sua conexão com a internet.");
+      }
+      
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -43,6 +63,24 @@ export default function Login() {
       setIsLoading(false);
     }
   };
+  
+  const handleRetry = async () => {
+    setConnectionError(false);
+    const isConnected = await checkSupabaseConnection();
+    if (!isConnected) {
+      setConnectionError(true);
+      toast({
+        title: "Problema de conexão",
+        description: "Ainda não foi possível conectar ao servidor.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Conexão restabelecida",
+        description: "Você já pode fazer login.",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center p-4 bg-gray-50">
@@ -57,6 +95,19 @@ export default function Login() {
             </span>
           </div>
         </div>
+        
+        {connectionError && (
+          <Alert variant="destructive" className="mb-4">
+            <ExclamationTriangleIcon className="h-4 w-4" />
+            <AlertTitle>Problema de conexão</AlertTitle>
+            <AlertDescription>
+              Não foi possível conectar ao servidor. Verifique sua conexão com a internet.
+              <Button variant="outline" className="w-full mt-2" onClick={handleRetry}>
+                Tentar novamente
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
         
         <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
           <div className="text-center mb-6">
@@ -95,7 +146,11 @@ export default function Login() {
               />
             </div>
             
-            <Button type="submit" className="w-full bg-primary hover:bg-primary-hover" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              className="w-full bg-primary hover:bg-primary-hover" 
+              disabled={isLoading || connectionError}
+            >
               {isLoading ? "Entrando..." : "Entrar"}
             </Button>
           </form>

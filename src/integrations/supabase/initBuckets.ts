@@ -7,6 +7,8 @@ import { supabase } from './client';
  */
 export async function initBuckets() {
   try {
+    console.log('Initializing storage buckets...');
+    
     // Verificar se o bucket de perfis existe, senão criar
     const { data: buckets, error: listError } = await supabase.storage.listBuckets();
     
@@ -15,21 +17,24 @@ export async function initBuckets() {
       return;
     }
     
+    const initializationPromises = [];
+    
     // Verificar se o bucket já existe
     const profilesBucketExists = buckets?.some(bucket => bucket.name === 'profiles');
     
     // Se não existir, criar o bucket
     if (!profilesBucketExists) {
-      const { error: createError } = await supabase.storage.createBucket('profiles', {
+      const profileBucketPromise = supabase.storage.createBucket('profiles', {
         public: true, // Bucket público para permitir acesso às imagens
+      }).then(({ error }) => {
+        if (error) {
+          console.error('Erro ao criar bucket de perfis:', error);
+        } else {
+          console.log('Bucket de perfis criado com sucesso!');
+        }
       });
       
-      if (createError) {
-        console.error('Erro ao criar bucket de perfis:', createError);
-        return;
-      }
-      
-      console.log('Bucket de perfis criado com sucesso!');
+      initializationPromises.push(profileBucketPromise);
     }
     
     // Verificar se o bucket de anúncios existe, senão criar
@@ -37,37 +42,65 @@ export async function initBuckets() {
     
     // Se não existir, criar o bucket
     if (!anunciosBucketExists) {
-      const { error: createError } = await supabase.storage.createBucket('anuncios', {
+      const anunciosBucketPromise = supabase.storage.createBucket('anuncios', {
         public: true, // Bucket público para permitir acesso às imagens
+      }).then(({ error }) => {
+        if (error) {
+          console.error('Erro ao criar bucket de anúncios:', error);
+        } else {
+          console.log('Bucket de anúncios criado com sucesso!');
+        }
       });
       
-      if (createError) {
-        console.error('Erro ao criar bucket de anúncios:', createError);
-        return;
-      }
-      
-      console.log('Bucket de anúncios criado com sucesso!');
+      initializationPromises.push(anunciosBucketPromise);
     }
     
-    // Adicionar colunas faltantes na tabela profiles se necessário
+    // Esperar todas as promessas terminarem
+    await Promise.allSettled(initializationPromises);
+    
+    console.log('Storage buckets initialization complete');
+    
+    // Verificar tabela de perfis separadamente para não bloquear a inicialização dos buckets
     try {
-      // Verifique se as colunas já existem para evitar erros
-      const { data: profileData, error: profileError } = await supabase
+      const { error: profileError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id')
         .limit(1);
       
       if (profileError) {
-        console.error('Erro ao verificar tabela de perfis:', profileError);
+        console.warn('Aviso ao verificar tabela de perfis:', profileError);
       } else {
-        // Se a tabela existe mas não conseguimos ver as colunas específicas, o erro está em outro lugar
         console.log('Tabela de perfis verificada com sucesso');
       }
     } catch (error) {
-      console.error('Erro ao verificar tabela de perfis:', error);
+      console.warn('Erro ao verificar tabela de perfis:', error);
     }
     
   } catch (error) {
     console.error('Erro ao inicializar buckets:', error);
+  }
+}
+
+/**
+ * Verifica o estado da conexão com o Supabase
+ * Retorna true se a conexão estiver OK, false caso contrário
+ */
+export async function checkConnection() {
+  try {
+    const start = Date.now();
+    const { error } = await supabase.from('profiles').select('id').limit(1).maybeSingle();
+    const elapsed = Date.now() - start;
+    
+    console.log(`Supabase connection check completed in ${elapsed}ms`);
+    
+    if (error) {
+      console.error('Connection check failed:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Connection check exception:', error);
+    return false;
   }
 }

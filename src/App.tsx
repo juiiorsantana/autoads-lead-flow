@@ -8,6 +8,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ExclamationTriangleIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 // Pages
 import LandingPage from "./pages/LandingPage";
@@ -22,17 +25,29 @@ import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1, // Limit retries
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      cacheTime: 10 * 60 * 1000, // 10 minutes
+    },
+  },
+});
 
 const App = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [initializingBuckets, setInitializingBuckets] = useState(false);
 
   useEffect(() => {
-    // Initialize storage buckets
-    import('@/integrations/supabase/initBuckets').then(({ initBuckets }) => {
-      initBuckets();
-    });
+    // Set a maximum time for loading before showing an error
+    const loadingTimeout = setTimeout(() => {
+      if (loading) {
+        setLoadingError("O carregamento está demorando mais que o esperado. Pode haver um problema de conexão.");
+      }
+    }, 10000); // 10 seconds timeout
     
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -42,19 +57,71 @@ const App = () => {
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setLoading(false);
-    });
+    // Check for existing session with timeout
+    const checkSession = async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        setSession(currentSession);
+      } catch (error) {
+        console.error("Error checking session:", error);
+        setLoadingError("Não foi possível verificar sua sessão. Por favor, tente novamente.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return () => subscription.unsubscribe();
-  }, []);
+    checkSession();
 
+    // Initialize buckets only after main app loads
+    const delayedInitBuckets = () => {
+      if (!loading && !initializingBuckets) {
+        setInitializingBuckets(true);
+        import('@/integrations/supabase/initBuckets').then(({ initBuckets }) => {
+          initBuckets().catch(console.error);
+        });
+      }
+    };
+
+    // Only initialize buckets when app is visible and loaded
+    if (document.visibilityState === 'visible') {
+      window.addEventListener('load', delayedInitBuckets);
+    }
+
+    return () => {
+      clearTimeout(loadingTimeout);
+      subscription.unsubscribe();
+      window.removeEventListener('load', delayedInitBuckets);
+    };
+  }, [loading, initializingBuckets]);
+
+  const retryLoading = () => {
+    setLoading(true);
+    setLoadingError(null);
+    window.location.reload();
+  };
+
+  // Show error message if loading takes too long
+  if (loadingError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <Alert variant="destructive" className="mb-4">
+            <ExclamationTriangleIcon className="h-4 w-4" />
+            <AlertTitle>Problema de conexão</AlertTitle>
+            <AlertDescription>{loadingError}</AlertDescription>
+          </Alert>
+          <Button onClick={retryLoading} className="w-full">Tentar novamente</Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show standard loading indicator
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+        <p className="text-gray-500">Carregando aplicação...</p>
       </div>
     ); 
   }
