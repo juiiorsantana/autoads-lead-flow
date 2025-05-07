@@ -1,11 +1,13 @@
+
 import { Card } from "@/components/ui/card";
-import { DollarSign, Users, MousePointerClick, ClipboardList, AreaChart, BarChart } from "lucide-react";
+import { DollarSign, Users, MousePointerClick, ClipboardList, AreaChart, BarChart as BarChartIcon } from "lucide-react";
 import { MetricCard } from "./MetricCard";
 import { MetricGauge } from "./MetricGauge";
 import { FunnelStep } from "./FunnelStep";
 import { CampaignData } from "@/types/metrics";
-import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { ChartContainer } from "@/components/ui/chart";
+
 interface MetricsOverviewProps {
   csvData: CampaignData[];
 }
@@ -65,7 +67,7 @@ export function MetricsOverview({ csvData }: MetricsOverviewProps) {
         <MetricCard 
           title="CPC" 
           value={`R$ ${averageCPC.toFixed(2)}`} 
-          icon={<BarChart className="h-5 w-5 text-indigo-500" />} 
+          icon={<BarChartIcon className="h-5 w-5 text-indigo-500" />} 
         />
       </div>
 
@@ -124,7 +126,7 @@ export function MetricsOverview({ csvData }: MetricsOverviewProps) {
             />
             <FunnelStep 
               label="CPA" 
-              value={totalLeads > 0 ? (totalInvestment / totalLeads).toFixed(2) : 0} 
+              value={totalLeads > 0 ? parseFloat((totalInvestment / totalLeads).toFixed(2)) : 0} 
               color="bg-purple-500" 
               percent={totalReach > 0 ? (totalLeads / totalReach) * 100 : 0}
               isCurrency
@@ -147,12 +149,14 @@ export function MetricsOverview({ csvData }: MetricsOverviewProps) {
                 }
               }}
             >
-              <BarChart data={processedData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                <XAxis dataKey="campaign_name" angle={-45} textAnchor="end" interval={0} height={60} />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="leads" fill="#4caf50" />
-              </BarChart>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={processedData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                  <XAxis dataKey="campaign_name" angle={-45} textAnchor="end" interval={0} height={60} />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="leads" fill="#4caf50" />
+                </BarChart>
+              </ResponsiveContainer>
             </ChartContainer>
           </div>
         </Card>
